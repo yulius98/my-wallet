@@ -188,7 +188,7 @@ This project is private and not licensed for public use.
 
 ## Support
 
-For support, email [your-email@example.com] or create an issue in the repository.
+For support, email [yulius.wijaya98@gmail.com] or create an issue in the repository.
 
 ---
 
