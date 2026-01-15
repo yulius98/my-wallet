@@ -78,21 +78,6 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
     });
   }
 
-  //Future<void> _selectMonth() async {
-  //  final picked = await showDatePicker(
-  //    context: context,
-  //    initialDate: _selectedMonth,
-  //    firstDate: DateTime(2000),
-  //    lastDate: DateTime(2100),
-  //    helpText: 'Select Month',
-  //  );
-  //  if (picked != null) {
-  //    setState(() {
-  //      _selectedMonth = DateTime(picked.year, picked.month);
-  //    });
-  //  }
-  //}
-
   @override
   void initState() {
     super.initState();

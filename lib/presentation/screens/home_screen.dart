@@ -95,9 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // Filter allocation posts by current user's email
     final userAllocations = boxAllocationPosts.values
-        .where((allocation) => allocation.email == userEmail)
+        .where(
+          (allocation) =>
+              allocation.email == userEmail &&
+              allocation.date.year == DateTime.now().year &&
+              allocation.date.month == DateTime.now().month,
+        )
         .toList();
-    
+        
     return Expanded(
       child: ListView.builder(
         itemCount: userAllocations.length,
@@ -131,6 +136,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   AspectRatio _card(User? user) {
+    final userEmail = user?.email ?? '';
+    final now = DateTime.now();
+
+    // Filter income berdasarkan email user dan bulan/tahun saat ini
+    final filteredIncomes = boxMonthlyIncomes.values.where(
+      (income) =>
+          income.email == userEmail &&
+          income.date.year == now.year &&
+          income.date.month == now.month,
+    );
+
+    final incomeAmount = filteredIncomes.isNotEmpty
+        ? filteredIncomes.first.income
+        : 0.0;
+    
     return AspectRatio(
       aspectRatio: 336 / 184,
       child: Container(
@@ -164,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 15,
               top: 80,
               child: Text(
-                "IDR: ${boxMonthlyIncomes.isNotEmpty ? NumberFormat('#,##0', 'id_ID').format(boxMonthlyIncomes.getAt(0)!.income) : '0'}",
+                "IDR: ${NumberFormat('#,##0', 'id_ID').format(incomeAmount)}",
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,

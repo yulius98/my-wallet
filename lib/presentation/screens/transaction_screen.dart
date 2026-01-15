@@ -24,7 +24,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
   final TextEditingController _availableAmountController =
       TextEditingController();
-  
+
   // List untuk menyimpan multiple transactions
   final List<Map<String, TextEditingController>> _transactionList = [];
 
@@ -122,7 +122,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     final availableAmount = double.tryParse(
       availableAmountText.replaceAll(',', ''),
     );
-    
+
     if (availableAmount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -167,21 +167,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
         }
 
         totalTransactionAmount += amountValue;
-        validatedTransactions.add({
-          'item': itemText,
-          'amount': amountValue,
-        });
+        validatedTransactions.add({'item': itemText, 'amount': amountValue});
       }
 
       // Cek apakah dana mencukupi
       final remainingAmount = availableAmount - totalTransactionAmount;
-      
+
       if (remainingAmount < 0) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Insufficient funds for the transaction. Shortage: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount.abs())}'
+              'Insufficient funds for the transaction. Shortage: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount.abs())}',
             ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
@@ -209,14 +206,33 @@ class _TransactionScreenState extends State<TransactionScreen> {
       }
 
       // Update allocation amount dengan sisa dana
+      final selectedMonth = _selectedDate!.month;
+      final selectedYear = _selectedDate!.year;
+      
       for (var key in boxAllocationPosts.keys) {
-        if (key.toString().endsWith('_$userEmail')) {
-          final allocation = boxAllocationPosts.get(key);
-          if (allocation != null && 
-              allocation.category == _selectedCategory) {
-            allocation.amount = remainingAmount;
-            await boxAllocationPosts.put(key, allocation);
-            break;
+        final keyStr = key.toString();
+
+        // Key format: key_{category}_{email}_{YYYYMM}
+        if (keyStr.contains(userEmail)) {
+          // Extract YYYYMM from end of key
+          final parts = keyStr.split('_');
+          if (parts.length >= 2) {
+            final yyyymm = parts.last;
+
+            if (yyyymm.length == 6) {
+              final keyYear = int.tryParse(yyyymm.substring(0, 4));
+              final keyMonth = int.tryParse(yyyymm.substring(4, 6));
+
+              if (keyYear == selectedYear && keyMonth == selectedMonth) {
+                final allocation = boxAllocationPosts.get(key);
+                if (allocation != null &&
+                    allocation.category == _selectedCategory) {
+                  allocation.amount = remainingAmount;
+                  await boxAllocationPosts.put(key, allocation);
+                  break;
+                }
+              }
+            }
           }
         }
       }
@@ -226,7 +242,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Transaction successfully saved! Remaining funds: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount)}'
+            'Transaction successfully saved! Remaining funds: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount)}',
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 3),
@@ -238,7 +254,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         _selectedDate = null;
         _selectedCategory = null;
         _availableAmountController.clear();
-        
+
         // Dispose and clear transaction list
         for (var transaction in _transactionList) {
           transaction['item']?.dispose();
@@ -259,20 +275,59 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
   List<String> _getCategories() {
     final user = AuthService.currentUser;
-    if (user == null) return [];
+    if (user == null) {
+      debugPrint('DEBUG: User is null');
+      return [];
+    }
 
     final userEmail = user.email ?? '';
+    final selectedMonth = _selectedDate?.month;
+    final selectedYear = _selectedDate?.year;
+
+    debugPrint('DEBUG: Selected date: $_selectedDate');
+    debugPrint('DEBUG: Looking for month: $selectedMonth, year: $selectedYear');
+    debugPrint('DEBUG: User email: $userEmail');
+    debugPrint(
+      'DEBUG: Total allocation keys: ${boxAllocationPosts.keys.length}',
+    );
+    
     final categories = <String>{};
 
     for (var key in boxAllocationPosts.keys) {
-      if (key.toString().endsWith('_$userEmail')) {
-        final allocation = boxAllocationPosts.get(key);
-        if (allocation != null) {
-          categories.add(allocation.category);
+      final keyStr = key.toString();
+      debugPrint('DEBUG: Checking key: $keyStr');
+
+      // Key format: key_{category}_{email}_{YYYYMM}
+      if (keyStr.contains(userEmail)) {
+        // Extract YYYYMM from end of key
+        final parts = keyStr.split('_');
+        if (parts.length >= 2) {
+          final yyyymm = parts.last; // e.g., "202601"
+          debugPrint('DEBUG: Extracted YYYYMM: $yyyymm');
+
+          if (yyyymm.length == 6) {
+            final keyYear = int.tryParse(yyyymm.substring(0, 4));
+            final keyMonth = int.tryParse(yyyymm.substring(4, 6));
+
+            debugPrint(
+              'DEBUG: Parsed - keyYear: $keyYear, keyMonth: $keyMonth',
+            );
+
+            if (keyYear == selectedYear && keyMonth == selectedMonth) {
+              final allocation = boxAllocationPosts.get(key);
+              if (allocation != null) {
+                debugPrint(
+                  'DEBUG: Match found! Adding category: ${allocation.category}',
+                );
+                categories.add(allocation.category);
+              }
+            }
+          }
         }
       }
     }
-
+    
+    debugPrint('DEBUG: Final categories: $categories');
     return categories.toList();
   }
 
@@ -281,12 +336,30 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (user == null) return null;
 
     final userEmail = user.email ?? '';
+    final selectedMonth = _selectedDate?.month;
+    final selectedYear = _selectedDate?.year;
 
     for (var key in boxAllocationPosts.keys) {
-      if (key.toString().endsWith('_$userEmail')) {
-        final allocation = boxAllocationPosts.get(key);
-        if (allocation != null && allocation.category == category) {
-          return allocation.amount;
+      final keyStr = key.toString();
+
+      // Key format: key_{category}_{email}_{YYYYMM}
+      if (keyStr.contains(userEmail)) {
+        // Extract YYYYMM from end of key
+        final parts = keyStr.split('_');
+        if (parts.length >= 2) {
+          final yyyymm = parts.last;
+
+          if (yyyymm.length == 6) {
+            final keyYear = int.tryParse(yyyymm.substring(0, 4));
+            final keyMonth = int.tryParse(yyyymm.substring(4, 6));
+
+            if (keyYear == selectedYear && keyMonth == selectedMonth) {
+              final allocation = boxAllocationPosts.get(key);
+              if (allocation != null && allocation.category == category) {
+                return allocation.amount;
+              }
+            }
+          }
         }
       }
     }
@@ -333,6 +406,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        // Reset category dan amount ketika tanggal berubah
+        _selectedCategory = null;
+        _availableAmountController.clear();
       });
     }
   }
@@ -387,7 +463,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 ..._transactionList.asMap().entries.map((entry) {
                   int index = entry.key;
                   Map<String, TextEditingController> controllers = entry.value;
-                  
+
                   return Column(
                     children: [
                       _buildTransactionItem(
@@ -409,73 +485,59 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
   Padding _action() {
     return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: _addTransaction,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              "Add Transaction",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          InkWell(
+            onTap: _addTransaction,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.add, color: Colors.white, size: 18),
+                  SizedBox(width: 4),
+                  Text(
+                    "Add Transaction",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
                     ),
-                    InkWell(
-                      onTap: _saveTransaction,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.save,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              "Save Transaction",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: _saveTransaction,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.save, color: Colors.white, size: 18),
+                  SizedBox(width: 4),
+                  Text(
+                    "Save Transaction",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
-              );
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Container _chooseCategory() {
@@ -536,32 +598,64 @@ class _TransactionScreenState extends State<TransactionScreen> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCategory,
-              decoration: InputDecoration(
-                hintText: "Select category",
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade400),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
-              items: _getCategories().map((String category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Text(category),
+            Builder(
+              builder: (context) {
+                final categories = _getCategories();
+                final hasCategories = categories.isNotEmpty;
+                final isEnabled = _selectedDate != null && hasCategories;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedCategory,
+                      decoration: InputDecoration(
+                        hintText: _selectedDate == null
+                            ? "Please select date first"
+                            : (hasCategories
+                                  ? "Select category"
+                                  : "No categories available for this date"),
+                        helperText: _selectedDate == null
+                            ? "Choose transaction date to see available categories"
+                            : (!hasCategories
+                                  ? "No allocation found for ${DateFormat('MMMM yyyy').format(_selectedDate!)}. Please create an allocation first."
+                                  : "Available: ${categories.join(', ')}"),
+                        helperStyle: TextStyle(
+                          color: !hasCategories ? Colors.red : Colors.green,
+                          fontSize: 12,
+                        ),
+                        filled: true,
+                        fillColor: isEnabled
+                            ? Colors.white.withValues(alpha: 0.8)
+                            : Colors.grey.shade200,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade400),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: isEnabled
+                          ? categories.map((String category) {
+                              return DropdownMenuItem<String>(
+                                value: category,
+                                child: Text(category),
+                              );
+                            }).toList()
+                          : null,
+                      onChanged: isEnabled
+                          ? (String? newValue) {
+                              setState(() {
+                                _selectedCategory = newValue;
+                                _updateAmountByCategory(newValue);
+                              });
+                            }
+                          : null,
+                    ),
+                  ],
                 );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedCategory = newValue;
-                  _updateAmountByCategory(newValue);
-                });
               },
             ),
             const SizedBox(height: 16),
@@ -619,11 +713,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             right: 5,
             top: 5,
             child: IconButton(
-              icon: const Icon(
-                Icons.close,
-                size: 20,
-                color: Colors.red,
-              ),
+              icon: const Icon(Icons.close, size: 20, color: Colors.red),
               onPressed: () => _removeTransaction(index),
             ),
           ),
@@ -633,21 +723,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
             top: 10,
             child: Row(
               children: [
-                const Text(
-                  "Transaction",
-                  style: TextStyle(fontSize: 13),
-                ),
+                const Text("Transaction", style: TextStyle(fontSize: 13)),
                 const SizedBox(width: 18),
                 Expanded(
                   child: TextFormField(
                     controller: itemController,
-                    
+
                     decoration: InputDecoration(
                       hintText: "Enter item trasaction",
                       filled: true,
-                      fillColor: Colors.white.withValues(
-                        alpha: 0.8,
-                      ),
+                      fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -667,10 +752,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             top: 65,
             child: Row(
               children: [
-                const Text(
-                  "Amount",
-                  style: TextStyle(fontSize: 13),
-                ),
+                const Text("Amount", style: TextStyle(fontSize: 13)),
                 const SizedBox(width: 40),
                 Expanded(
                   child: TextFormField(
@@ -687,9 +769,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     decoration: InputDecoration(
                       hintText: "Enter amount",
                       filled: true,
-                      fillColor: Colors.white.withValues(
-                        alpha: 0.8,
-                      ),
+                      fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

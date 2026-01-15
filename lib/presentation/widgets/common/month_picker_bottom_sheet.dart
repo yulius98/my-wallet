@@ -35,7 +35,7 @@ class _MonthPickerBottomSheetState
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 420,
+      height: 480,
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
@@ -144,7 +144,7 @@ class _MonthPickerBottomSheetState
                   DateTime(selectedYear, selectedMonth),
                 );
               },
-              child: const Text('Apply'),
+              child: const Text('Apply', style: TextStyle(color: Colors.white)),
             ),
           ),
         ],

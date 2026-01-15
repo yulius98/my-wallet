@@ -12,6 +12,7 @@ import 'package:my_wallet/core/theme/app_theme.dart';
 import 'package:my_wallet/core/utils/string_utils.dart';
 import 'package:my_wallet/core/utils/currency_utils.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:my_wallet/presentation/widgets/common/month_picker_bottom_sheet.dart';
 
 class WalletScreen extends StatefulWidget {
   final int initialIndex;
@@ -23,7 +24,8 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   late int _currentIndex;
-  DateTime? _selectedDate;
+  DateTime _selectedMonth = DateTime.now();
+
   final TextEditingController _monthlyIncomeController =
       TextEditingController();
   final TextEditingController _housingutilitiesController =
@@ -58,16 +60,60 @@ class _WalletScreenState extends State<WalletScreen> {
     _loadMonthlyIncome();
   }
 
+  String get formattedMonth {
+    return DateFormat('MMMM yyyy').format(_selectedMonth);
+  }
+
+  void _openMonthPicker() async {
+    final result = await showModalBottomSheet<DateTime>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => MonthPickerBottomSheet(initialDate: _selectedMonth),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedMonth = result;
+        _loadMonthlyIncome(); // Load data untuk bulan yang dipilih
+      });
+    }
+  }
+
+  void _previousMonth() {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+      _loadMonthlyIncome(); // Load data untuk bulan sebelumnya
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+      _loadMonthlyIncome(); // Load data untuk bulan berikutnya
+    });
+  }
+
   void _loadMonthlyIncome() {
     final user = AuthService.currentUser;
     String userEmail = user?.email ?? 'unknown@email.com';
+    
+    // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
+    String monthYearKey =
+        '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
 
-    // Load monthly income
-    final monthlyIncome = boxMonthlyIncomes.get('key_income_$userEmail');
+    // Load monthly income berdasarkan bulan yang dipilih
+    final monthlyIncome = boxMonthlyIncomes.get(
+      'key_income_${userEmail}_$monthYearKey',
+    );
     if (monthlyIncome != null) {
       _monthlyIncomeController.text = CurrencyUtils.formatCurrency(
         monthlyIncome.income,
       );
+    } else {
+      _monthlyIncomeController.clear();
     }
 
     // Map untuk menyederhanakan loading allocation data
@@ -86,11 +132,15 @@ class _WalletScreenState extends State<WalletScreen> {
       'entertaiment': _entertainmentSelfRewardController,
     };
 
-    // Load semua allocation data dalam satu loop
+    // Load semua allocation data dalam satu loop berdasarkan bulan yang dipilih
     allocationMap.forEach((key, controller) {
-      final allocation = boxAllocationPosts.get('key_${key}_$userEmail');
+      final allocation = boxAllocationPosts.get(
+        'key_${key}_${userEmail}_$monthYearKey',
+      );
       if (allocation != null) {
         controller.text = CurrencyUtils.formatCurrency(allocation.amount);
+      } else {
+        controller.clear();
       }
     });
   }
@@ -113,31 +163,31 @@ class _WalletScreenState extends State<WalletScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return DatePickerTheme(
-          data: DatePickerThemeData(
-            backgroundColor: Colors.white,
-            headerBackgroundColor: Colors.blue,
-            headerForegroundColor: Colors.white,
-            dayStyle: TextStyle(color: Colors.black),
-            yearStyle: TextStyle(color: Colors.black),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
+  //Future<void> _pickDate(BuildContext context) async {
+  //  final DateTime? picked = await showDatePicker(
+  //    context: context,
+  //    initialDate: _selectedDate ?? DateTime.now(),
+  //    firstDate: DateTime(2000),
+  //    lastDate: DateTime(2100),
+  //    builder: (context, child) {
+  //      return DatePickerTheme(
+  //        data: DatePickerThemeData(
+  //          backgroundColor: Colors.white,
+  //          headerBackgroundColor: Colors.blue,
+  //          headerForegroundColor: Colors.white,
+  //          dayStyle: TextStyle(color: Colors.black),
+  //          yearStyle: TextStyle(color: Colors.black),
+  //        ),
+  //        child: child!,
+  //      );
+  //    },
+  //  );
+  //  if (picked != null && picked != _selectedDate) {
+  //    setState(() {
+  //      _selectedDate = picked;
+  //    });
+  //  }
+  //}
 
 
   @override
@@ -594,117 +644,122 @@ class _WalletScreenState extends State<WalletScreen> {
         }
 
         // Jika validasi lolos (difference == 0), simpan data
+        // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
+        String monthYearKey =
+            '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
+        
         setState(() {
           boxMonthlyIncomes.put(
-            'key_income_$userEmail',
+            'key_income_${userEmail}_$monthYearKey',
             MonthlyIncome(
+              email: userEmail,
+              date: _selectedMonth,
               income: incomeAmount,
-              date: _selectedDate ?? DateTime.now(),
             ),
           );
           boxAllocationPosts.put(
-            'key_housing_$userEmail',
+            'key_housing_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryHousing,
               amount: housingAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_food_$userEmail',
+            'key_food_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryFood,
               amount: foodAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_health_$userEmail',
+            'key_health_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryHealth,
               amount: healthAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_otherexpense_$userEmail',
+            'key_otherexpense_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryOther,
               amount: otherexpanseAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_emergency_$userEmail',
+            'key_emergency_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryEmergency,
               amount: emergencyAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_investement_$userEmail',
+            'key_investement_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryInvestment,
               amount: investmentAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_installments_$userEmail',
+            'key_installments_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryInstallments,
               amount: installmentAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_creditcards_$userEmail',
+            'key_creditcards_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryCreditCardInstalments,
               amount: creditcardAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_otherInstallments_$userEmail',
+            'key_otherInstallments_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryOtherInstalments,
               amount: otherInstallmentAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_healths_$userEmail',
+            'key_healths_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categoryHealthFitness,
               amount: healthfitnessAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_skilleducation_$userEmail',
+            'key_skilleducation_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categorySkillsDevelopmentEducation,
               amount: skillseducationAmount,
             ),
           );
           boxAllocationPosts.put(
-            'key_entertaiment_$userEmail',
+            'key_entertaiment_${userEmail}_$monthYearKey',
             AllocationPost(
-              date: _selectedDate ?? DateTime.now(),
+              date: _selectedMonth,
               email: userEmail,
               category: AppConstants.categorySntertainmentSelfReward,
               amount: entertaimentAmount,
@@ -875,7 +930,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   "Housing & Utilities (25%)",
                   style: TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 32),
+                const Spacer(),
                 Expanded(
                   child: TextFormField(
                     controller: _housingutilitiesController,
@@ -916,7 +971,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   "Food & Transport (15%)",
                   style: TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 40),
+                const Spacer(),
                 Expanded(
                   child: TextFormField(
                     controller: _foodTransportController,
@@ -1042,37 +1097,57 @@ class _WalletScreenState extends State<WalletScreen> {
           Row(
             children: [
               const Text(
-                "Date : ",
+                "Month : ",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              const SizedBox(width: 85),
-              Expanded(
-                child: InkWell(
-                  onTap: () => _pickDate(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedDate == null
-                              ? "Choose Date"
-                              : DateFormat('dd-MM-yyyy').format(_selectedDate!),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: _selectedDate == null ? Colors.grey.shade600 : Colors.black,
-                          ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: _previousMonth,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: _openMonthPicker,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_month,
+                        size: 16,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        formattedMonth,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
                         ),
-                        Icon(Icons.calendar_today, size: 18, color: Colors.grey.shade600),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(Icons.keyboard_arrow_down, size: 16),
+                    ],
                   ),
                 ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: _nextMonth,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
