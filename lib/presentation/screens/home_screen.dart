@@ -154,7 +154,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             //subtitle: const Text('Category'),
-            trailing: Text('Amount: Rp. ${NumberFormat('#,##0', 'id_ID').format(allocationPost.amount)}',
+            trailing: Text(
+              'Jumlah: Rp. ${NumberFormat('#,##0', 'id_ID').format(allocationPost.amount)}',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold
@@ -206,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 15,
               top: 60,
               child: Text(
-                "Total Income",
+                "Total Pendapatan per Bulan",
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -228,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 15,
               top: 120,
               child: Text(
-                "Available Funds",
+                "Dana Tersedia",
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -286,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           children: [
-            Text("Welcome Back !", style: const TextStyle(fontSize: 20)),
+            Text("Selamat Datang !", style: const TextStyle(fontSize: 16)),
             const SizedBox(width: 8),
             Text(
               StringUtils.getDisplayName(user?.displayName),

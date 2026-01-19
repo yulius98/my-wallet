@@ -172,7 +172,7 @@ class _WalletScreenState extends State<WalletScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text(
-          "Income Allocation",
+          "Alokasi Pendapatan",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppTheme.primaryColor,
@@ -241,7 +241,7 @@ class _WalletScreenState extends State<WalletScreen> {
             left: 10,
             top: 10,
             child: Text(
-              "Development & Lifestyle (10% from income)",
+              "Pengembangan Diri & Gaya Hidup (10% dari pendapatan)",
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black,
@@ -258,7 +258,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Health & Fitness (3%)",
+                    "Kesehatan & Olahraga (3%)",
                   style: TextStyle(fontSize: 13),
                 ),
                 ),
@@ -277,7 +277,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -302,7 +302,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Skills & Education (4%)",
+                    "Pengembangan Skill & Pendidikan  (4%)",
                   style: TextStyle(fontSize: 13),
                 ),
                 ),
@@ -321,7 +321,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -346,7 +346,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Entertainment (3%)",
+                  "Hiburan (3%)",
                   style: TextStyle(fontSize: 13),
                 ),
                 ),
@@ -365,7 +365,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -400,7 +400,7 @@ class _WalletScreenState extends State<WalletScreen> {
             left: 10,
             top: 10,
             child: Text(
-              "Instalments & Commitments (20% from income)",
+              "Angsuran & Kewajiban (20% dari pendapatam)",
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black,
@@ -417,7 +417,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Outside of Mortgages (10%)",
+                    "Angsuran Rumah dan atau Mobil (10%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -436,7 +436,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -461,7 +461,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Credit Card Instalments (5%)",
+                    "Angsuran Kartu Kredit (jika ada) (5%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -480,7 +480,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -505,7 +505,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Other Instalments (5%)",
+                    "Angsuran Lain (Elektronik, dll) (5%)",
                   style: TextStyle(fontSize: 13),
                 ),
                 ),
@@ -524,7 +524,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -624,8 +624,8 @@ class _WalletScreenState extends State<WalletScreen> {
             SnackBar(
               content: Text(
                 difference > 0
-                    ? 'There is still unallocated income amounting: Rp. ${NumberFormat('#,##0', 'id_ID').format(difference.abs())}'
-                    : 'Total allocation exceeds income: Rp. ${NumberFormat('#,##0', 'id_ID').format(difference.abs())}',
+                    ? 'Masih terdapat pendapatan yang belum dialokasikan sebesar: Rp. ${NumberFormat('#,##0', 'id_ID').format(difference.abs())}'
+                    : 'Total alokasi melebihi pendapatan: Rp. ${NumberFormat('#,##0', 'id_ID').format(difference.abs())}',
               ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
@@ -783,7 +783,7 @@ class _WalletScreenState extends State<WalletScreen> {
         // Menampilkan snackbar setelah data berhasil disimpan
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Data successfully saved!'),
+            content: const Text('Data berhasil disimpan!'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
@@ -797,7 +797,7 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         );
       },
-      child: const Text("Save Data"),
+      child: const Text("Simpan Data"),
     );
   }
 
@@ -815,7 +815,7 @@ class _WalletScreenState extends State<WalletScreen> {
             left: 10,
             top: 10,
             child: Text(
-              "Saving & Investment (20% from income)",
+              "Tabungan & Investasi (20% dari pendapatan)",
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black,
@@ -833,7 +833,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Emergency Fund (5%)",
+                    "Dana Darurat (target terkumpul 6-12x pengeluaran bulanan) (5%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -852,7 +852,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -878,7 +878,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Long-term Investment (15%)",
+                    "Investasi Jangka Panjang (Pesiun, Kebabasan Finansial) (15%)",
                   style: TextStyle(fontSize: 13),
                 ),
                 ),
@@ -897,7 +897,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -932,7 +932,7 @@ class _WalletScreenState extends State<WalletScreen> {
             left: 10,
             top: 10,
             child: Text(
-              "Living Expenses & Obligations (50% from income)",
+              "Biaya Hidup & Kewajiban (50% dari pendapatan)",
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black,
@@ -950,7 +950,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Housing & Utilities (25%)",
+                    "Kebutuhan Rumah (listrik, air, internet, dll  ) (25%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -969,7 +969,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -995,7 +995,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                  "Food & Transport (15%)",
+                    "Makanan & Transportasi (15%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -1014,7 +1014,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -1040,7 +1040,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Health Insurance (5%)",
+                    "Asuransi Kesehatan (5%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -1059,7 +1059,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -1085,7 +1085,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Other Regular Expenses (5%)",
+                    "Pengeluaran Rutin Lain (5%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -1104,7 +1104,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan Jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -1134,7 +1134,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Row(
             children: [
               const Text(
-                "Month : ",
+                "Bulan : ",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               const Spacer(),
@@ -1192,7 +1192,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Row(
             children: [
               const Text(
-                "Monthly Income",
+                "Pendapatan Bulanan",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),  
               const SizedBox(width: 15),
@@ -1207,7 +1207,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ),
                   ],
                   decoration: InputDecoration(
-                    hintText: "Enter amount",
+                    hintText: "Masukkan Jumlah",
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.8),
                     border: OutlineInputBorder(
@@ -1295,7 +1295,7 @@ class _WalletScreenState extends State<WalletScreen> {
               AppConstants.entertainmentSelfReward,
             );
       },
-      child: const Text("Income Allocation"),
+      child: const Text("Alokasi Pendapatan"),
     );
   }
 

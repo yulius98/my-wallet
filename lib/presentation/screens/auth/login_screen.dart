@@ -108,7 +108,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 30,
                           ),
                     label: Text(
-                      _isLoading ? "Processing..." : "Sign in with Google",
+                      _isLoading
+                          ? "Sedang memproses..."
+                          : "Masuk dengan Google",
                       style: const TextStyle(fontSize: 18, color: Colors.black87),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -125,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20),
                 const Text(
-                  "Your data is only stored on this mobile phone.",
+                  "Data Anda hanya disimpan di ponsel ini.",
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],

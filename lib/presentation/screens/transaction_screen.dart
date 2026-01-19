@@ -67,7 +67,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a transaction date'),
+          content: Text('Silakan pilih tanggal transaksi.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -77,7 +77,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (_selectedCategory == null || _selectedCategory!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a category'),
+          content: Text('Silakan pilih kategori'),
           backgroundColor: Colors.red,
         ),
       );
@@ -87,7 +87,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (_transactionList.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please add at least one transaction item'),
+          content: Text('Silakan tambahkan setidaknya satu item transaksi.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -98,7 +98,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('User not authenticated'),
+          content: Text('Pengguna tidak terautentikasi'),
           backgroundColor: Colors.red,
         ),
       );
@@ -112,7 +112,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (availableAmountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Available amount is required'),
+          content: Text('Jumlah yang tersedia diperlukan.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -126,7 +126,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     if (availableAmount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Invalid available amount format'),
+          content: Text('Format jumlah yang tersedia tidak valid'),
           backgroundColor: Colors.red,
         ),
       );
@@ -146,7 +146,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Please fill all transaction fields'),
+              content: Text('Silakan isi semua kolom transaksi.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -159,7 +159,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Invalid amount format'),
+              content: Text('Format jumlah tidak valid'),
               backgroundColor: Colors.red,
             ),
           );
@@ -178,7 +178,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Insufficient funds for the transaction. Shortage: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount.abs())}',
+              'Saldo tidak mencukupi untuk transaksi. Kekurangan: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount.abs())}',
             ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
@@ -242,7 +242,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Transaction successfully saved! Remaining funds: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount)}',
+            'Transaksi berhasil disimpan! Sisa dana: ${NumberFormat('#,##0.00', 'en_US').format(remainingAmount)}',
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 3),
@@ -266,7 +266,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error saving transactions: $e'),
+          content: Text('Kesalahan saat menyimpan transaksi: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -422,7 +422,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text(
-          "Transaction",
+          "Transaksi",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppTheme.primaryColor,
@@ -502,7 +502,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   Icon(Icons.add, color: Colors.white, size: 18),
                   SizedBox(width: 4),
                   Text(
-                    "Add Transaction",
+                    "Tambahkan Transaksi",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -525,7 +525,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   Icon(Icons.save, color: Colors.white, size: 18),
                   SizedBox(width: 4),
                   Text(
-                    "Save Transaction",
+                    "Simpan Transaksi",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -553,7 +553,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Transaction Date :",
+              "Tanggal Transaksi :",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
@@ -574,7 +574,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   children: [
                     Text(
                       _selectedDate == null
-                          ? "Choose Date"
+                          ? "Pilih Tanggal"
                           : DateFormat('dd-MM-yyyy').format(_selectedDate!),
                       style: TextStyle(
                         fontSize: 14,
@@ -594,7 +594,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              "Category :",
+              "Kategori :",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
@@ -611,15 +611,15 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       initialValue: _selectedCategory,
                       decoration: InputDecoration(
                         hintText: _selectedDate == null
-                            ? "Please select date first"
+                            ? "Silakan pilih tanggal terlebih dahulu."
                             : (hasCategories
-                                  ? "Select category"
-                                  : "No categories available for this date"),
+                                  ? "Pilih kategori"
+                                  : "Tidak ada kategori yang tersedia untuk tanggal ini."),
                         helperText: _selectedDate == null
-                            ? "Choose transaction date to see available categories"
+                            ? "Pilih tanggal transaksi untuk melihat kategori yang tersedia."
                             : (!hasCategories
-                                  ? "No allocation found for ${DateFormat('MMMM yyyy').format(_selectedDate!)}. Please create an allocation first."
-                                  : "Available: ${categories.join(', ')}"),
+                                  ? "Tidak ditemukan alokasi untuk ${DateFormat('MMMM yyyy').format(_selectedDate!)}. Silakan buat alokasi terlebih dahulu."
+                                  : "Tersedia: ${categories.join(', ')}"),
                         helperStyle: TextStyle(
                           color: !hasCategories ? Colors.red : Colors.green,
                           fontSize: 12,
@@ -660,7 +660,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              "Available Amount :",
+              "Jumlah yang Tersedia :",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
@@ -676,7 +676,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 ),
               ],
               decoration: InputDecoration(
-                hintText: "Enter amount",
+                hintText: "Masukkan jumlah",
                 filled: false,
                 fillColor: Colors.white.withValues(alpha: 0.8),
                 border: OutlineInputBorder(
@@ -723,14 +723,14 @@ class _TransactionScreenState extends State<TransactionScreen> {
             top: 10,
             child: Row(
               children: [
-                const Text("Transaction", style: TextStyle(fontSize: 13)),
+                const Text("Transaksi", style: TextStyle(fontSize: 13)),
                 const SizedBox(width: 18),
                 Expanded(
                   child: TextFormField(
                     controller: itemController,
 
                     decoration: InputDecoration(
-                      hintText: "Enter item trasaction",
+                      hintText: "Masukkan transaksi",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
@@ -752,7 +752,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             top: 65,
             child: Row(
               children: [
-                const Text("Amount", style: TextStyle(fontSize: 13)),
+                const Text("Jumlah", style: TextStyle(fontSize: 13)),
                 const SizedBox(width: 40),
                 Expanded(
                   child: TextFormField(
@@ -767,7 +767,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Enter amount",
+                      hintText: "Masukkan jumlah",
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(

@@ -93,7 +93,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text(
-          "Transaction History",
+          "Riwayat Transaksi",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppTheme.primaryColor,
@@ -137,7 +137,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                         child: Row(
                           children: [
                             const Text(
-                              "Transaction",
+                              "Transaksi",
                               style: TextStyle(fontSize: 14),
                             ),
                             const Spacer(),
@@ -205,7 +205,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                           onPressed: _searchTransactions, 
-                          child: const Text("Search Transaction"),
+                          child: const Text("Cari Transaksi"),
                         ),
                       ),
                       
@@ -235,7 +235,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Found ${_filteredTransactions.length} transaction(s)',
+            'Ditemukan ${_filteredTransactions.length} transaksi',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -340,7 +340,7 @@ class _BuildEmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         const Text(
-          'No Transaction Found',
+          'Tidak ditemukan transaksi.',
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey,
@@ -349,7 +349,7 @@ class _BuildEmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Swipe left/right to change month',
+          'Geser ke kiri/kanan untuk mengganti bulan',
           style: TextStyle(color: Colors.grey),
         ),
       ],
