@@ -1,61 +1,66 @@
-# My Wallet - Personal Finance Management App
+# My Wallet - Aplikasi Manajemen Keuangan Pribadi
 
-A Flutter-based personal finance management application that helps users track their income, allocate budgets, and manage transactions efficiently.
+Aplikasi manajemen keuangan pribadi berbasis Flutter yang membantu pengguna melacak pendapatan, mengalokasikan anggaran, dan mengelola transaksi dengan efisien.
 
-## Features
+## Fitur
 
-### 🔐 Authentication
-- Firebase Authentication integration
-- Google Sign-In support
-- Secure user session management
+### 🚀 Splash Screen
+- Logo aplikasi yang menarik
+- Transisi halus ke halaman login
 
-### 💰 Income Management
-- Set monthly income
-- Date-based income tracking
-- Income allocation calculator
+### 🔐 Autentikasi
+- Integrasi Firebase Authentication
+- Login dengan Google Sign-In
+- Manajemen sesi pengguna yang aman
 
-### 📊 Budget Allocation (Based on 50/20/20/10 Rule)
-- **Living Expenses & Obligations (50%)**
-  - Housing & Utilities (25%)
-  - Food & Transport (15%)
-  - Health Insurance (5%)
-  - Other Regular Expenses (5%)
+### 💰 Manajemen Pendapatan
+- Set pendapatan bulanan
+- Pelacakan pendapatan berdasarkan tanggal
+- Kalkulator alokasi pendapatan otomatis
 
-- **Savings & Investment (20%)**
-  - Emergency Fund (5%)
-  - Long-term Investment (15%)
+### 📊 Alokasi Anggaran (Berdasarkan Aturan 50/20/20/10)
+- **Biaya Hidup & Kewajiban (50%)**
+  - Tempat Tinggal & Utilitas (25%)
+  - Makanan & Transport (15%)
+  - Asuransi Kesehatan (5%)
+  - Pengeluaran Rutin Lainnya (5%)
 
-- **Installments & Commitments (20%)**
-  - Outside of Mortgages (10%)
-  - Credit Card Installments (5%)
-  - Other Installments (5%)
+- **Tabungan & Investasi (20%)**
+  - Dana Darurat (5%)
+  - Investasi Jangka Panjang (15%)
 
-- **Development & Lifestyle (10%)**
-  - Health & Fitness (3%)
-  - Skills & Education (4%)
-  - Entertainment (3%)
+- **Cicilan & Komitmen (20%)**
+  - Diluar KPR (10%)
+  - Cicilan Kartu Kredit (5%)
+  - Cicilan Lainnya (5%)
 
-### 💳 Transaction Management
-- Record multiple transactions per category
-- Real-time balance calculation
-- Transaction validation against available allocation
-- Auto-deduction from allocated budgets
+- **Pengembangan & Gaya Hidup (10%)**
+  - Kesehatan & Fitness (3%)
+  - Skill & Pendidikan (4%)
+  - Hiburan (3%)
 
-### 📜 Transaction History
-- View transactions by month and year
-- Month picker with navigation
-- Search and filter transactions
-- Transaction details with category, date, and amount
-- Empty state for no transactions
+### 💳 Manajemen Transaksi
+- Catat transaksi per kategori
+- Perhitungan saldo real-time
+- Validasi transaksi terhadap alokasi yang tersedia
+- Pengurangan otomatis dari anggaran yang dialokasikan
 
-### 🏠 Dashboard
-- Overview of wallet status
-- Quick access to main features
-- User profile information
+### 📜 Riwayat Transaksi
+- Lihat transaksi berdasarkan bulan dan tahun
+- Month picker dengan navigasi
+- Cari dan filter transaksi
+- Detail transaksi dengan kategori, tanggal, dan jumlah
+- Empty state untuk transaksi kosong
+
+### 🏠 Beranda
+- Overview status wallet
+- Akses cepat ke fitur utama
+- Informasi profil pengguna
+- Bottom navigation bar dengan animasi
 
 ## Tech Stack
 
-- **Framework**: Flutter 3.10.4+
+- **Framework**: Flutter SDK ^3.10.4
 - **Language**: Dart
 - **Database**: Hive (Local NoSQL Database)
 - **Authentication**: Firebase Auth
@@ -65,6 +70,7 @@ A Flutter-based personal finance management application that helps users track t
   - Custom Bottom Navigation
   - Month Picker Bottom Sheet
   - Multi-currency formatter
+  - Custom splash screen
 
 ## Dependencies
 
@@ -80,46 +86,68 @@ provider: ^6.1.5+1
 intl: ^0.20.2
 curved_navigation_bar: ^1.0.6
 flutter_multi_formatter: ^2.13.10
+cupertino_icons: ^1.0.8
 ```
 
-## Project Structure
+## Dev Dependencies
+
+```yaml
+flutter_lints: ^6.0.0
+hive_generator
+build_runner
+flutter_launcher_icons: ^0.14.2
+flutter_native_splash: ^2.4.3
+```
+
+## Struktur Proyek
 
 ```
 lib/
 ├── core/
-│   ├── constants/        # App-wide constants
-│   ├── theme/           # Theme and styling
-│   └── utils/           # Utility functions
+│   ├── constants/        # Konstanta aplikasi
+│   ├── theme/           # Tema dan styling
+│   └── utils/           # Fungsi utility
 ├── data/
-│   ├── local/           # Hive database setup
+│   ├── local/           # Setup Hive database
 │   └── models/          # Data models (Transaction, AllocationPost, MonthlyIncome)
+│       ├── transaction.dart & transaction.g.dart
+│       ├── allocation_post.dart & allocation_post.g.dart
+│       └── monthly_income.dart & monthly_income.g.dart
 ├── presentation/
-│   ├── screens/         # App screens
-│   │   ├── dashboard_screen.dart
+│   ├── screens/         # Layar aplikasi
+│   │   ├── auth/
+│   │   │   └── login_screen.dart
+│   │   ├── splash/
+│   │   │   └── splash_screen.dart
+│   │   ├── home_screen.dart
 │   │   ├── wallet_screen.dart
 │   │   ├── transaction_screen.dart
-│   │   ├── history_trasaction_screen.dart
-│   │   └── login_screen.dart
-│   └── widgets/         # Reusable widgets
-│       └── common/      # Common widgets
+│   │   └── history_trasaction_screen.dart
+│   └── widgets/         # Widget yang dapat digunakan ulang
+│       └── common/      # Widget umum
 └── services/
-    └── auth_service.dart # Authentication service
+    └── auth_service.dart # Service autentikasi
+
+assets/
+├── background.jpeg      # Background image
+├── google_logo.png      # Logo Google untuk login
+└── logo.png            # Logo aplikasi
 ```
 
-## Getting Started
+## Memulai
 
-### Prerequisites
+### Prasyarat
 
-- Flutter SDK (3.10.4 or higher)
+- Flutter SDK (3.10.4 atau lebih tinggi)
 - Dart SDK
 - Android Studio / VS Code
-- Firebase account
+- Akun Firebase
 
-### Installation
+### Instalasi
 
-1. **Clone the repository**
+1. **Clone repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/yulius98/my-wallet.git
    cd my_wallet
    ```
 
@@ -130,66 +158,76 @@ lib/
 
 3. **Generate Hive adapters**
    ```bash
-   flutter packages pub run build_runner build
+   flutter pub run build_runner build
+   ```
+   atau untuk clean build:
+   ```bash
+   flutter pub run build_runner build --delete-conflicting-outputs
    ```
 
-4. **Configure Firebase**
-   - Add your `google-services.json` to `android/app/`
-   - Add your `GoogleService-Info.plist` to `ios/Runner/`
+4. **Konfigurasi Firebase**
+   - Tambahkan `google-services.json` ke `android/app/`
+   - Tambahkan `GoogleService-Info.plist` ke `ios/Runner/`
 
-5. **Run the app**
+5. **Generate splash screen dan launcher icons (opsional)**
+   ```bash
+   flutter pub run flutter_native_splash:create
+   flutter pub run flutter_launcher_icons
+   ```
+
+6. **Jalankan aplikasi**
    ```bash
    flutter run
    ```
 
-## Usage
+## Cara Penggunaan
 
-1. **Login**: Sign in using Google authentication
-2. **Set Income**: Navigate to Wallet screen and enter your monthly income
-3. **Allocate Budget**: Use "Income Allocation" button to auto-calculate budget distribution
-4. **Record Transactions**: Go to Transaction screen, select category, and add transaction items
-5. **View History**: Check transaction history by month in History screen
+1. **Login**: Masuk menggunakan autentikasi Google
+2. **Set Pendapatan**: Navigasi ke layar Wallet dan masukkan pendapatan bulanan Anda
+3. **Alokasi Anggaran**: Gunakan tombol "Income Allocation" untuk menghitung distribusi anggaran secara otomatis
+4. **Catat Transaksi**: Buka layar Transaction, pilih kategori, dan tambahkan item transaksi
+5. **Lihat Riwayat**: Cek riwayat transaksi per bulan di layar History
 
-## Data Models
+## Model Data
 
 ### Transaction
-- Email (user identifier)
-- Date
-- Category
-- Item name
-- Amount
+- Email (identifikasi pengguna)
+- Date (tanggal transaksi)
+- Category (kategori transaksi)
+- Item name (nama item)
+- Amount (jumlah)
 
 ### AllocationPost
-- Email
-- Category
-- Amount
-- Date
+- Email (identifikasi pengguna)
+- Category (kategori alokasi)
+- Amount (jumlah alokasi)
+- Date (tanggal alokasi)
 
 ### MonthlyIncome
-- Income amount
-- Date
+- Income amount (jumlah pendapatan)
+- Date (tanggal pendapatan)
 
-## Features in Development
+## Fitur yang Sedang Dikembangkan
 
-- [ ] Analytics and reports
-- [ ] Budget vs Actual comparison
-- [ ] Export data to CSV/PDF
-- [ ] Multi-currency support
-- [ ] Recurring transactions
-- [ ] Budget notifications
+- [ ] Analitik dan laporan
+- [ ] Perbandingan budget vs aktual
+- [ ] Export data ke CSV/PDF
+- [ ] Dukungan multi-currency
+- [ ] Transaksi berulang
+- [ ] Notifikasi anggaran
 
-## Contributing
+## Kontribusi
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Kontribusi sangat diterima! Silakan ajukan Pull Request.
 
-## License
+## Lisensi
 
-This project is private and not licensed for public use.
+Proyek ini bersifat pribadi dan tidak dilisensikan untuk penggunaan publik.
 
-## Support
+## Dukungan
 
-For support, email [yulius.wijaya98@gmail.com] or create an issue in the repository.
+Untuk dukungan, email ke yulius.wijaya98@gmail.com atau buat issue di repository.
 
 ---
 
-**Note**: This is a personal finance management tool. Please ensure you backup your data regularly as it's stored locally on your device.
+**Catatan**: Ini adalah alat manajemen keuangan pribadi. Pastikan Anda mem-backup data secara teratur karena data disimpan secara lokal di perangkat Anda.

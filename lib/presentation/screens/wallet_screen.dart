@@ -163,33 +163,6 @@ class _WalletScreenState extends State<WalletScreen> {
     super.dispose();
   }
 
-  //Future<void> _pickDate(BuildContext context) async {
-  //  final DateTime? picked = await showDatePicker(
-  //    context: context,
-  //    initialDate: _selectedDate ?? DateTime.now(),
-  //    firstDate: DateTime(2000),
-  //    lastDate: DateTime(2100),
-  //    builder: (context, child) {
-  //      return DatePickerTheme(
-  //        data: DatePickerThemeData(
-  //          backgroundColor: Colors.white,
-  //          headerBackgroundColor: Colors.blue,
-  //          headerForegroundColor: Colors.white,
-  //          dayStyle: TextStyle(color: Colors.black),
-  //          yearStyle: TextStyle(color: Colors.black),
-  //        ),
-  //        child: child!,
-  //      );
-  //    },
-  //  );
-  //  if (picked != null && picked != _selectedDate) {
-  //    setState(() {
-  //      _selectedDate = picked;
-  //    });
-  //  }
-  //}
-
-
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
@@ -282,11 +255,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 35,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Health & Fitness (3%)",
                   style: TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 18),
+                ),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _healthFitnessController,
@@ -322,10 +299,14 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 90,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Skills & Education (4%)",
                   style: TextStyle(fontSize: 13),
                 ),
+                ),
+                 
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
@@ -362,11 +343,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 145,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Entertainment (3%)",
                   style: TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 32),
+                ),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _entertainmentSelfRewardController,
@@ -429,11 +414,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 35,
             child: Row(
               children: [
-                const Text(
-                  "Outside of Mortgages (10%)",
-                  style: TextStyle(fontSize: 13),
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    "Outside of Mortgages (10%)",
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                const SizedBox(width: 12),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _installmentsOutsideMortgagesController,
@@ -469,11 +458,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 90,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Credit Card Instalments (5%)",
-                  style: TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                const SizedBox(width: 8),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _creditCardInstalmentsController,
@@ -509,11 +502,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 145,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Other Instalments (5%)",
                   style: TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 42),
+                ),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _otherInstalmentsController,
@@ -817,11 +814,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 35,
             child: Row(
               children: [
-                const Text(
-                  "Emergency Fund (5%)",
-                  style: TextStyle(fontSize: 13),
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    "Emergency Fund (5%)",
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                const SizedBox(width: 55),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _emergencyFundController,
@@ -858,11 +859,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 90,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Long-term Investment (15%)",
                   style: TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 15),
+                ),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _longTermInvestmentController,
@@ -926,11 +931,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 35,
             child: Row(
               children: [
-                const Text(
-                  "Housing & Utilities (25%)",
-                  style: TextStyle(fontSize: 13),
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    "Housing & Utilities (25%)",
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                const Spacer(),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _housingutilitiesController,
@@ -967,11 +976,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 90,
             child: Row(
               children: [
-                const Text(
+                SizedBox(
+                  width: 200,
+                  child: Text(
                   "Food & Transport (15%)",
-                  style: TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                const Spacer(),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _foodTransportController,
@@ -1008,11 +1021,15 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 145,
             child: Row(
               children: [
-                const Text(
-                  "Health Insurance (5%)",
-                  style: TextStyle(fontSize: 13),
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    "Health Insurance (5%)",
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                const SizedBox(width: 50),
+
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     controller: _healthInsuranceController,
@@ -1049,10 +1066,14 @@ class _WalletScreenState extends State<WalletScreen> {
             top: 200,
             child: Row(
               children: [
-                const Text(
-                  "Other Regular Expenses (5%)",
-                  style: TextStyle(fontSize: 13),
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    "Other Regular Expenses (5%)",
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
+                
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
