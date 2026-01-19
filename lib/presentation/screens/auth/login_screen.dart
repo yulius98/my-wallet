@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_wallet/core/constants/app_constants.dart';
+import 'package:my_wallet/presentation/screens/home_screen.dart';
 import 'package:my_wallet/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,9 +32,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppConstants.errorLogin)),
         );
+      } else {
+        // Login berhasil, navigasi ke HomeScreen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       }
-      // Jika login berhasil, AuthWrapper akan otomatis mendeteksi perubahan
-      // dan pindah ke HomeScreen, jadi tidak perlu navigasi manual
     } catch (e) {
       if (!mounted) return;
       

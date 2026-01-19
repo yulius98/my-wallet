@@ -26,6 +26,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    
+    // Debug logging untuk verifikasi data saat home screen dibuka
+    final user = AuthService.currentUser;
+    debugPrint('🏠 HomeScreen initialized for: ${user?.email}');
+    debugPrint('🏠 Total allocations in box: ${boxAllocationPosts.length}');
+    debugPrint('🏠 Total incomes in box: ${boxMonthlyIncomes.length}');
+
+    // List semua keys untuk debugging
+    if (boxAllocationPosts.isNotEmpty) {
+      debugPrint('🏠 Allocation keys:');
+      for (var key in boxAllocationPosts.keys.take(5)) {
+        debugPrint('   - $key');
+      }
+    }
   }
 
   @override
@@ -93,15 +107,32 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = AuthService.currentUser;
     final userEmail = user?.email ?? '';
     
+    // Debug logging
+    debugPrint('📊 Loading allocations for: $userEmail');
+    debugPrint('📊 Total items in box: ${boxAllocationPosts.length}');
+    debugPrint('📊 Current date: ${DateTime.now()}');
+    
     // Filter allocation posts by current user's email
     final userAllocations = boxAllocationPosts.values
         .where(
-          (allocation) =>
-              allocation.email == userEmail &&
-              allocation.date.year == DateTime.now().year &&
-              allocation.date.month == DateTime.now().month,
+          (allocation) {
+      final matches =
+          allocation.email == userEmail &&
+          allocation.date.year == DateTime.now().year &&
+          allocation.date.month == DateTime.now().month;
+
+      if (matches) {
+        debugPrint(
+          '✅ Found allocation: ${allocation.category} - ${allocation.amount}',
+        );
+      }
+
+      return matches;
+    },
         )
         .toList();
+    
+    debugPrint('📊 Total filtered allocations: ${userAllocations.length}');
         
     return Expanded(
       child: ListView.builder(

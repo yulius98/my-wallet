@@ -26,11 +26,13 @@ class MonthlyIncomeAdapter extends TypeAdapter<MonthlyIncome> {
   @override
   void write(BinaryWriter writer, MonthlyIncome obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.income)
+      ..write(obj.email)
       ..writeByte(1)
-      ..write(obj.date);
+      ..write(obj.date)
+      ..writeByte(2)
+      ..write(obj.income);
   }
 
   @override

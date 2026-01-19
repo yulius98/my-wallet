@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_wallet/core/constants/app_constants.dart';
 import 'package:my_wallet/presentation/screens/home_screen.dart';
 import 'package:my_wallet/services/auth_service.dart';
@@ -18,32 +17,17 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    _navigateToAuth();
   }
 
-  Future<void> _initializeApp() async {
-    try {
-      // Initialize Firebase dan Hive secara parallel
-      await Future.wait([
-        Firebase.initializeApp(),
-        Hive.initFlutter(),
-      ]);
-      
-      // Tunggu minimal 500ms untuk smooth transition
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AuthWrapper()),
-        );
-      }
-    } catch (e) {
-      // Handle error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Initialization error: $e')),
-        );
-      }
+  Future<void> _navigateToAuth() async {
+    // Minimal delay for smooth transition (reduced from 1500 to 500ms)
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (mounted) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const AuthWrapper()));
     }
   }
 
@@ -89,12 +73,11 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
+    return StreamBuilder<User?>(
       stream: AuthService.authStateChanges,
       builder: (context, snapshot) {
-        // Tampilkan splash lebih cepat dengan checking langsung
+        // While waiting for stream, check current user immediately
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Cek current user langsung tanpa tunggu stream
           final user = AuthService.currentUser;
           if (user != null) {
             return const HomeScreen();
@@ -104,12 +87,12 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        if (snapshot.hasData) {
-          // Sudah login
+        // If user is logged in
+        if (snapshot.hasData && snapshot.data != null) {
           return const HomeScreen();
         }
 
-        // Belum login
+        // User is not logged in
         return const LoginScreen();
       },
     );

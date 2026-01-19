@@ -9,33 +9,72 @@ late Box<MonthlyIncome> boxMonthlyIncomes;
 late Box<Transaction> boxTransactions;
 
 Future<void> initHiveBoxes() async {
+  debugPrint('🔧 Starting Hive initialization...');
+
   await Hive.initFlutter();
+  debugPrint('✅ Hive.initFlutter() completed');
+
   Hive.registerAdapter(MonthlyIncomeAdapter());
   Hive.registerAdapter(AllocationPostAdapter());
   Hive.registerAdapter(TransactionAdapter());
-  
+  debugPrint('✅ Adapters registered');
+
+  // Open AllocationPostBox with error handling
   try {
     boxAllocationPosts = await Hive.openBox<AllocationPost>(
       'AllocationPostBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
     );
-    boxMonthlyIncomes = await Hive.openBox<MonthlyIncome>('MonthlyIncomeBox');
-    boxTransactions = await Hive.openBox<Transaction>('TransactionBox');
+    debugPrint(
+      '✅ AllocationPostBox opened (${boxAllocationPosts.length} items)',
+    );
   } catch (e) {
-    debugPrint('Error opening Hive boxes: $e');
-    debugPrint('Deleting corrupt boxes and trying again...');
-
-    // Delete corrupt boxes
+    debugPrint('❌ Error opening AllocationPostBox: $e');
+    debugPrint('🔄 Deleting corrupt AllocationPostBox...');
     await Hive.deleteBoxFromDisk('AllocationPostBox');
-    await Hive.deleteBoxFromDisk('MonthlyIncomeBox');
-    await Hive.deleteBoxFromDisk('TransactionBox');
-
-    // Recreate boxes
     boxAllocationPosts = await Hive.openBox<AllocationPost>(
       'AllocationPostBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
     );
-    boxMonthlyIncomes = await Hive.openBox<MonthlyIncome>('MonthlyIncomeBox');
-    boxTransactions = await Hive.openBox<Transaction>('TransactionBox');
-    
-    debugPrint('Boxes recreated successfully');
+    debugPrint('✅ AllocationPostBox recreated');
   }
+
+  // Open MonthlyIncomeBox with error handling
+  try {
+    boxMonthlyIncomes = await Hive.openBox<MonthlyIncome>(
+      'MonthlyIncomeBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
+    );
+    debugPrint('✅ MonthlyIncomeBox opened (${boxMonthlyIncomes.length} items)');
+  } catch (e) {
+    debugPrint('❌ Error opening MonthlyIncomeBox: $e');
+    debugPrint('🔄 Deleting corrupt MonthlyIncomeBox...');
+    await Hive.deleteBoxFromDisk('MonthlyIncomeBox');
+    boxMonthlyIncomes = await Hive.openBox<MonthlyIncome>(
+      'MonthlyIncomeBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
+    );
+    debugPrint('✅ MonthlyIncomeBox recreated');
+  }
+
+  // Open TransactionBox with error handling
+  try {
+    boxTransactions = await Hive.openBox<Transaction>(
+      'TransactionBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
+    );
+    debugPrint('✅ TransactionBox opened (${boxTransactions.length} items)');
+  } catch (e) {
+    debugPrint('❌ Error opening TransactionBox: $e');
+    debugPrint('🔄 Deleting corrupt TransactionBox...');
+    await Hive.deleteBoxFromDisk('TransactionBox');
+    boxTransactions = await Hive.openBox<Transaction>(
+      'TransactionBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
+    );
+    debugPrint('✅ TransactionBox recreated');
+  }
+
+  debugPrint('🎉 All Hive boxes initialized successfully');
 }
+

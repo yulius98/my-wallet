@@ -645,123 +645,139 @@ class _WalletScreenState extends State<WalletScreen> {
         String monthYearKey =
             '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
         
+        // Simpan data ke Hive
+        boxMonthlyIncomes.put(
+          'key_income_${userEmail}_$monthYearKey',
+          MonthlyIncome(
+            email: userEmail,
+            date: _selectedMonth,
+            income: incomeAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_housing_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryHousing,
+            amount: housingAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_food_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryFood,
+            amount: foodAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_health_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryHealth,
+            amount: healthAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_otherexpense_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryOther,
+            amount: otherexpanseAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_emergency_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryEmergency,
+            amount: emergencyAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_investement_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryInvestment,
+            amount: investmentAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_installments_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryInstallments,
+            amount: installmentAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_creditcards_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryCreditCardInstalments,
+            amount: creditcardAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_otherInstallments_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryOtherInstalments,
+            amount: otherInstallmentAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_healths_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categoryHealthFitness,
+            amount: healthfitnessAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_skilleducation_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categorySkillsDevelopmentEducation,
+            amount: skillseducationAmount,
+          ),
+        );
+        boxAllocationPosts.put(
+          'key_entertaiment_${userEmail}_$monthYearKey',
+          AllocationPost(
+            date: _selectedMonth,
+            email: userEmail,
+            category: AppConstants.categorySntertainmentSelfReward,
+            amount: entertaimentAmount,
+          ),
+        );
+
+        // Force flush data ke disk untuk memastikan data benar-benar tersimpan
+        boxMonthlyIncomes.flush();
+        boxAllocationPosts.flush();
+
+        // Debug logging untuk verifikasi
+        debugPrint('💾 Data saved for $userEmail - Month: $monthYearKey');
+        debugPrint(
+          '💾 Total items in boxAllocationPosts: ${boxAllocationPosts.length}',
+        );
+        debugPrint(
+          '💾 Total items in boxMonthlyIncomes: ${boxMonthlyIncomes.length}',
+        );
+
         setState(() {
-          boxMonthlyIncomes.put(
-            'key_income_${userEmail}_$monthYearKey',
-            MonthlyIncome(
-              email: userEmail,
-              date: _selectedMonth,
-              income: incomeAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_housing_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryHousing,
-              amount: housingAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_food_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryFood,
-              amount: foodAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_health_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryHealth,
-              amount: healthAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_otherexpense_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryOther,
-              amount: otherexpanseAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_emergency_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryEmergency,
-              amount: emergencyAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_investement_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryInvestment,
-              amount: investmentAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_installments_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryInstallments,
-              amount: installmentAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_creditcards_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryCreditCardInstalments,
-              amount: creditcardAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_otherInstallments_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryOtherInstalments,
-              amount: otherInstallmentAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_healths_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categoryHealthFitness,
-              amount: healthfitnessAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_skilleducation_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categorySkillsDevelopmentEducation,
-              amount: skillseducationAmount,
-            ),
-          );
-          boxAllocationPosts.put(
-            'key_entertaiment_${userEmail}_$monthYearKey',
-            AllocationPost(
-              date: _selectedMonth,
-              email: userEmail,
-              category: AppConstants.categorySntertainmentSelfReward,
-              amount: entertaimentAmount,
-            ),
-          );
+          // Trigger rebuild untuk update UI
         });
 
         // Menampilkan snackbar setelah data berhasil disimpan
