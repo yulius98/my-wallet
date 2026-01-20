@@ -1,5 +1,6 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:my_wallet/core/theme/app_theme.dart';
 import 'package:my_wallet/presentation/screens/history_trasaction_screen.dart';
 import 'package:my_wallet/presentation/screens/home_screen.dart';
 import 'package:my_wallet/presentation/screens/transaction_screen.dart';
@@ -20,11 +21,11 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = <Widget>[
-      Icon(Icons.home, size: 20),
-      Icon(Icons.payment, size: 20),
-      Icon(Icons.history, size: 20),
-      Icon(Icons.wallet, size: 20),
-      Icon(Icons.settings, size: 20),
+      Icon(Icons.home, color: AppTheme.javaneseGoldLight, size: 20),
+      Icon(Icons.payment, color: AppTheme.javaneseGoldLight, size: 20),
+      Icon(Icons.history, color: AppTheme.javaneseGoldLight, size: 20),
+      Icon(Icons.wallet, color: AppTheme.javaneseGoldLight, size: 20),
+      Icon(Icons.settings, color: AppTheme.javaneseGoldLight, size: 20),
     ];
 
     return CurvedNavigationBar(
@@ -62,8 +63,8 @@ class CustomBottomNavBar extends StatelessWidget {
           );
         }
       },
-      backgroundColor: Colors.transparent,
-      color: const Color.fromARGB(255, 29, 218, 247),
+      backgroundColor: AppTheme.javaneseGreen,
+      color: AppTheme.javaneseBrown,
       buttonBackgroundColor: Colors.transparent,
       height: 55,
       animationDuration: const Duration(milliseconds: 300),

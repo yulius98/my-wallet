@@ -1,11 +1,13 @@
 class AppConstants {
   // App Info
   static const String appName = 'My Wallet';
-  static const String appDescription = 'Manage your finances safely and easily';
+  static const String appDescription =
+      'Kelola keuangan Anda dengan aman dan mudah';
 
   // Asset Paths
   static const String logoPath = 'assets/logo.png';
   static const String backgroundPath = 'assets/background.jpeg';
+  static const String backgroundCard = 'assets/card.jpg';
 
   // Hive Box Names
   static const String allocationPostBoxName = 'AllocationPostBox';
@@ -25,21 +27,26 @@ class AppConstants {
   static const double entertainmentSelfReward = 0.03;
 
   // Allocation Categories
-  static const String categoryHousing = 'Housing and Utilities';
-  static const String categoryFood = 'Food and Transport';
-  static const String categoryHealth = 'Health Insurance';
-  static const String categoryOther = 'Other Regular Expenses';
-  static const String categoryEmergency = 'Emergency Fund';
-  static const String categoryInvestment = 'Long-term Investment';
+  static const String categoryHousing =
+      'Kebutuhan Rumah (listrik, air, internet, dll)';
+  static const String categoryFood = 'Makan & Transportasi';
+  static const String categoryHealth = 'Asuransi Kesehatan';
+  static const String categoryOther = 'Pengeluaran Rutin Lain';
+  static const String categoryEmergency =
+      'Dana Darurat (target terkumpul 6-12x pengeluaran bulanan)';
+  static const String categoryInvestment =
+      'Investasi Jangka Panjang (Pensiun, Kebebasan Finansial)';
   static const String categoryInstallments =
-      'Installments Outside of Mortgages';
-  static const String categoryCreditCardInstalments = 'Card Instalments';
-  static const String categoryOtherInstalments = 'Other Instalments';
-  static const String categoryHealthFitness = 'Health and Fitness';
+      'Angsuran Rumah dan atau Mobil';
+  static const String categoryCreditCardInstalments =
+      'Angsuran Kartu Kredit (jika ada)';
+  static const String categoryOtherInstalments =
+      'Angsuran Lain (Elektronik, dll)';
+  static const String categoryHealthFitness = 'Kesehatan dan Olahraga';
   static const String categorySkillsDevelopmentEducation =
-      'Skills Development and Education';
+      'Pengembangan Skill & Pendidikan';
   static const String categorySntertainmentSelfReward =
-      'Entertainment and Self-Reward';
+      'Hiburan';
 
   // Navigation
   static const String loginRoute = '/login';
@@ -47,7 +54,7 @@ class AppConstants {
   // Error Messages
   static const String errorInitialization = 'Initialization error';
   static const String errorLogin =
-      'Login failed or cancelled. Please try again.';
+      'Masuk gagal atau dibatalkan. Silakan coba lagi.';
   static const String errorSHA1 =
       'The application configuration is incomplete. Please add the SHA-1 fingerprint in the Firebase Console.';
 }

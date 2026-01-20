@@ -25,6 +25,8 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> {
   late int _currentIndex;
   DateTime _selectedMonth = DateTime.now();
+  bool _isEditMode = false;
+  bool _isDataSaved = false;
 
   final TextEditingController _monthlyIncomeController =
       TextEditingController();
@@ -112,8 +114,18 @@ class _WalletScreenState extends State<WalletScreen> {
       _monthlyIncomeController.text = CurrencyUtils.formatCurrency(
         monthlyIncome.income,
       );
+      // Data sudah ada di database, tandai sebagai saved
+      setState(() {
+        _isDataSaved = true;
+        _isEditMode = false;
+      });
     } else {
       _monthlyIncomeController.clear();
+      // Data belum ada, tandai sebagai belum saved
+      setState(() {
+        _isDataSaved = false;
+        _isEditMode = false;
+      });
     }
 
     // Map untuk menyederhanakan loading allocation data
@@ -218,7 +230,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 _categoryLifestyle(),
 
                 const SizedBox(height: 17),
-                _saveAllocationPost(),
+                _actionButtons(),
               ],
             ),
           ),
@@ -278,7 +290,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -322,7 +334,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -366,7 +378,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -437,7 +449,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -481,7 +493,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -525,7 +537,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -548,12 +560,10 @@ class _WalletScreenState extends State<WalletScreen> {
   ElevatedButton _saveAllocationPost() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue, // Warna background
-        foregroundColor: Colors.white, // Warna teks
-        padding: EdgeInsets.symmetric(vertical: 12),
-        fixedSize: Size(370, 50), // Width: 370, Height: 50
-        // Atau gunakan fixedSize untuk ukuran tetap:
-        // fixedSize: Size(200, 50),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        minimumSize: const Size(0, 50),
       ),
       onPressed: () {
         final user = AuthService.currentUser;
@@ -778,6 +788,8 @@ class _WalletScreenState extends State<WalletScreen> {
 
         setState(() {
           // Trigger rebuild untuk update UI
+          _isDataSaved = true;
+          _isEditMode = false;
         });
 
         // Menampilkan snackbar setelah data berhasil disimpan
@@ -799,6 +811,61 @@ class _WalletScreenState extends State<WalletScreen> {
       },
       child: const Text("Simpan Data"),
     );
+  }
+
+  Widget _actionButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(child: _saveAllocationPost()),
+          const SizedBox(width: 12),
+          Expanded(child: _editDataButton()),
+        ],
+      ),
+    );
+  }
+
+  ElevatedButton _editDataButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _isDataSaved ? Colors.orange : Colors.grey,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        minimumSize: const Size(0, 50),
+      ),
+      onPressed: _isDataSaved
+          ? () {
+              // Logika untuk edit data
+              _editData();
+            }
+          : null,
+      child: Text(_isEditMode ? "Batal Edit" : "Edit Data"),
+    );
+  }
+
+  void _editData() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+    });
+
+    if (_isEditMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mode edit diaktifkan'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mode edit dinonaktifkan'),
+          backgroundColor: Colors.grey,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Container _categorySavingInvestment() {
@@ -853,7 +920,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -878,7 +945,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Investasi Jangka Panjang (Pesiun, Kebabasan Finansial) (15%)",
+                    "Investasi Jangka Panjang (Pensiun, Kebabasan Finansial) (15%)",
                   style: TextStyle(fontSize: 13),
                 ),
                 ),
@@ -898,7 +965,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -950,7 +1017,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Kebutuhan Rumah (listrik, air, internet, dll  ) (25%)",
+                    "Kebutuhan Rumah (listrik, air, internet, dll) (25%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -970,7 +1037,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -995,7 +1062,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 SizedBox(
                   width: 200,
                   child: Text(
-                    "Makanan & Transportasi (15%)",
+                    "Makan & Transportasi (15%)",
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -1015,7 +1082,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1060,7 +1127,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1105,7 +1172,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ],
                     decoration: InputDecoration(
                       hintText: "Masukkan Jumlah",
-                      filled: true,
+                      filled: _isEditMode,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1208,7 +1275,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   ],
                   decoration: InputDecoration(
                     hintText: "Masukkan Jumlah",
-                    filled: true,
+                    filled: _isEditMode,
                     fillColor: Colors.white.withValues(alpha: 0.8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1305,6 +1372,10 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(AppConstants.backgroundCard),
+            fit: BoxFit.cover,
+          ),
           borderRadius: BorderRadius.circular(14),
           gradient: LinearGradient(
             colors: [

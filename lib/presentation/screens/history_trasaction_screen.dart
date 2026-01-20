@@ -294,7 +294,9 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              DateFormat('dd MMM yyyy, HH:mm').format(transaction.date),
+                              DateFormat(
+                                'dd MMM yyyy',
+                              ).format(transaction.date),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade500,

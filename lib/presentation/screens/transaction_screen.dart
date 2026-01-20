@@ -197,7 +197,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           item: transactionData['item'],
           amount: transactionData['amount'],
         );
-
+  
         // Save to Hive with unique key
         final key = '${DateTime.now().millisecondsSinceEpoch}_$userEmail';
         await boxTransactions.put(key, transaction);
@@ -208,7 +208,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       // Update allocation amount dengan sisa dana
       final selectedMonth = _selectedDate!.month;
       final selectedYear = _selectedDate!.year;
-      
+
       for (var key in boxAllocationPosts.keys) {
         final keyStr = key.toString();
 
@@ -290,7 +290,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     debugPrint(
       'DEBUG: Total allocation keys: ${boxAllocationPosts.keys.length}',
     );
-    
+
     final categories = <String>{};
 
     for (var key in boxAllocationPosts.keys) {
@@ -326,7 +326,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         }
       }
     }
-    
+
     debugPrint('DEBUG: Final categories: $categories');
     return categories.toList();
   }
@@ -502,7 +502,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   Icon(Icons.add, color: Colors.white, size: 18),
                   SizedBox(width: 4),
                   Text(
-                    "Tambahkan Transaksi",
+                    "Tambah Transaksi",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -604,57 +604,96 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 final hasCategories = categories.isNotEmpty;
                 final isEnabled = _selectedDate != null && hasCategories;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedCategory,
-                      decoration: InputDecoration(
-                        hintText: _selectedDate == null
-                            ? "Silakan pilih tanggal terlebih dahulu."
-                            : (hasCategories
-                                  ? "Pilih kategori"
-                                  : "Tidak ada kategori yang tersedia untuk tanggal ini."),
-                        helperText: _selectedDate == null
-                            ? "Pilih tanggal transaksi untuk melihat kategori yang tersedia."
-                            : (!hasCategories
-                                  ? "Tidak ditemukan alokasi untuk ${DateFormat('MMMM yyyy').format(_selectedDate!)}. Silakan buat alokasi terlebih dahulu."
-                                  : "Tersedia: ${categories.join(', ')}"),
-                        helperStyle: TextStyle(
-                          color: !hasCategories ? Colors.red : Colors.green,
-                          fontSize: 12,
+                return SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedCategory,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          hintText: _selectedDate == null
+                              ? "Silakan pilih tanggal"
+                              : (hasCategories
+                                    ? "Pilih kategori"
+                                    : "Tidak ada kategori yang tersedia."),
+                          filled: true,
+                          fillColor: isEnabled
+                              ? Colors.white.withValues(alpha: 0.8)
+                              : Colors.grey.shade200,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: isEnabled
-                            ? Colors.white.withValues(alpha: 0.8)
-                            : Colors.grey.shade200,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade400),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                        items: isEnabled
+                            ? categories.map((String category) {
+                                return DropdownMenuItem<String>(
+                                  value: category,
+                                  child: Text(
+                                    category,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList()
+                            : null,
+                        onChanged: isEnabled
+                            ? (String? newValue) {
+                                setState(() {
+                                  _selectedCategory = newValue;
+                                  _updateAmountByCategory(newValue);
+                                });
+                              }
+                            : null,
                       ),
-                      items: isEnabled
-                          ? categories.map((String category) {
-                              return DropdownMenuItem<String>(
-                                value: category,
-                                child: Text(category),
-                              );
-                            }).toList()
-                          : null,
-                      onChanged: isEnabled
-                          ? (String? newValue) {
-                              setState(() {
-                                _selectedCategory = newValue;
-                                _updateAmountByCategory(newValue);
-                              });
-                            }
-                          : null,
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      // Helper text di luar dropdown
+                      if (_selectedDate == null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, top: 4),
+                          child: Text(
+                            "Pilih tanggal transaksi untuk melihat kategori yang tersedia.",
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 11,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      else if (!hasCategories)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, top: 4),
+                          child: Text(
+                            "Tidak ada alokasi untuk bulan ${DateFormat('MMMM yyyy').format(_selectedDate!)}.",
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 11,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      else if (categories.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, top: 4),
+                          child: Text(
+                            "Kategori tersedia",
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontSize: 11,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -676,7 +715,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 ),
               ],
               decoration: InputDecoration(
-                hintText: "Masukkan jumlah",
+                hintText: "Dana yang tersedia",
                 filled: false,
                 fillColor: Colors.white.withValues(alpha: 0.8),
                 border: OutlineInputBorder(
@@ -723,7 +762,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
             top: 10,
             child: Row(
               children: [
-                const Text("Transaksi", style: TextStyle(fontSize: 13)),
+                SizedBox(
+                  width: 100,
+                  child: Text("Transaksi", style: TextStyle(fontSize: 13)),
+                ),
+
                 const SizedBox(width: 18),
                 Expanded(
                   child: TextFormField(
@@ -752,8 +795,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
             top: 65,
             child: Row(
               children: [
-                const Text("Jumlah", style: TextStyle(fontSize: 13)),
-                const SizedBox(width: 40),
+                SizedBox(
+                  width: 100,
+                  child: Text("Jumlah", style: TextStyle(fontSize: 13)),
+                ),
+
+                const SizedBox(width: 18),
                 Expanded(
                   child: TextFormField(
                     controller: amountController,
