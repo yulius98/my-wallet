@@ -1,6 +1,7 @@
 // lib/presentation/screens/home/home_screen.dart
 import 'package:my_wallet/data/local/hive_boxes.dart';
 import 'package:my_wallet/data/models/allocation_post.dart';
+//import 'package:my_wallet/data/models/transaction.dart';
 import 'package:my_wallet/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:my_wallet/core/constants/app_constants.dart';
 import 'package:my_wallet/core/theme/app_theme.dart';
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    
+
     // Debug logging untuk verifikasi data saat home screen dibuka
     final user = AuthService.currentUser;
     debugPrint('🏠 HomeScreen initialized for: ${user?.email}');
@@ -189,16 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Expanded _listcategory() {
     final user = AuthService.currentUser;
     final userEmail = user?.email ?? '';
-    
+
     // Debug logging
     debugPrint('📊 Loading allocations for: $userEmail');
     debugPrint('📊 Total items in box: ${boxAllocationPosts.length}');
     debugPrint('📊 Current date: ${DateTime.now()}');
-    
+
     // Filter allocation posts by current user's email
-    final userAllocations = boxAllocationPosts.values
-        .where(
-          (allocation) {
+    final userAllocations = boxAllocationPosts.values.where((allocation) {
       final matches =
           allocation.email == userEmail &&
           allocation.date.year == DateTime.now().year &&
@@ -211,12 +210,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       return matches;
-    },
-        )
-        .toList();
-    
+    }).toList();
+
     debugPrint('📊 Total filtered allocations: ${userAllocations.length}');
-        
+
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,6 +381,16 @@ class _HomeScreenState extends State<HomeScreen> {
   AspectRatio _card(User? user) {
     final userEmail = user?.email ?? '';
     final now = DateTime.now();
+    
+    final totalTransaksi = boxTransactions.values
+        .where(
+          (transaction) =>
+              transaction.email == userEmail &&
+              transaction.date.year == now.year &&
+              transaction.date.month == now.month,
+        )
+        .fold<double>(0.0, (sum, transaction) => sum + transaction.amount);
+
 
     // Filter income berdasarkan email user dan bulan/tahun saat ini
     final filteredIncomes = boxMonthlyIncomes.values.where(
@@ -396,13 +403,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final incomeAmount = filteredIncomes.isNotEmpty
         ? filteredIncomes.first.income
         : 0.0;
-    
+
     return AspectRatio(
       aspectRatio: 336 / 200,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          gradient: AppTheme.javaneseBrownGradient,
+          image: DecorationImage(
+            image: AssetImage(AppConstants.backgroundCard),
+            fit: BoxFit.cover,
+          ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppTheme.javaneseGold, width: 3),
           boxShadow: [
@@ -419,204 +429,104 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(17),
-          child: Stack(
-            children: [
-              // Ornamen background
-              Positioned.fill(
-                child: Opacity(
-                  opacity: 0.1,
-                  child: Image.asset(
-                    AppConstants.backgroundCard,
-                    fit: BoxFit.cover,
-                  ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 10,
+              top: 10,
+              child: Text(
+                DateFormat("MMMM yyyy").format(DateTime.now()),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.javaneseGoldLight,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
                 ),
               ),
-              
-              // Ornamen border dalam
-              Positioned(
-                top: 10,
-                left: 10,
-                right: 10,
-                bottom: 10,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.javaneseGold.withValues(alpha: .3),
-                      width: 1,
-                    ),
-                  ),
+            ),
+
+            Positioned(
+              right: 12,
+              top: 40,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.javaneseGold, width: 3),
+                  image: user?.photoURL != null && user!.photoURL!.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(user.photoURL!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: user?.photoURL == null || user!.photoURL!.isEmpty
+                    ? Icon(Icons.person, size: 50, color: AppTheme.javaneseGold)
+                    : null,
+              ),
+            ),
+
+            Positioned(
+              left: 10,
+              top: 60,
+              child: Text(
+                "Pendapatan Bulan Ini",
+                style: TextStyle(
+                  color: AppTheme.javaneseGoldLight.withValues(alpha: .8),
+                  fontSize: 14,
+                  letterSpacing: 0.5,
                 ),
               ),
-              
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              DateFormat("MMMM yyyy").format(DateTime.now()),
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: AppTheme.javaneseGoldLight,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              height: 2,
-                              width: 60,
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.javaneseGoldGradient,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.javaneseGold,
-                              width: 3,
-                            ),
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.javaneseGold.withValues(alpha: .3),
-                                AppTheme.javaneseBrownLight,
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.javaneseGold.withValues(
-                                  alpha: .3,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                            image:
-                                user?.photoURL != null &&
-                                    user!.photoURL!.isNotEmpty
-                                ? DecorationImage(
-                                    image: NetworkImage(user.photoURL!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                          ),
-                          child:
-                              user?.photoURL == null || user!.photoURL!.isEmpty
-                              ? Icon(
-                                  Icons.person,
-                                  size: 40,
-                                  color: AppTheme.javaneseGoldLight,
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
+            ),
 
-                    const SizedBox(height: 5),
-                    Text(
-                      "Pendapatan Bulanan",
-                      style: TextStyle(
-                        color: AppTheme.javaneseGoldLight.withValues(alpha: .8),
-                        fontSize: 13,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount)}",
-                      style: const TextStyle(
-                        color: AppTheme.javaneseGoldLight,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black45,
-                            offset: Offset(2, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Dana Tersedia",
-                              style: TextStyle(
-                                color: AppTheme.javaneseGoldLight.withValues(
-                                  alpha: 0.8,
-                                ),
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Rp 0",
-                              style: TextStyle(
-                                color: AppTheme.javaneseGoldLight,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: AppTheme.javaneseGoldGradient,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.javaneseGold.withValues(
-                                  alpha: .3,
-                                ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            user?.email?.split('@')[0] ?? "",
-                            style: const TextStyle(
-                              color: AppTheme.javaneseBrown,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+            Positioned(
+              left: 10,
+              top: 80,
+              child: Text(
+                "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount)}",
+                style: const TextStyle(
+                  color: AppTheme.javaneseGoldLight,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black45,
+                      offset: Offset(2, 2),
+                      blurRadius: 4,
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+
+            Positioned(
+              left: 35,
+              top: 120,
+              child: Text(
+                "Dana yang Bisa Digunakan :",
+                style: TextStyle(
+                  color: AppTheme.javaneseGoldLight,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+
+            Positioned(
+              left: 60,
+              top: 140,
+              child: Text(
+                "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount - totalTransaksi)}",
+                style: TextStyle(
+                  color: AppTheme.javaneseGoldLight,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -675,23 +585,29 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Sugeng Rawuh",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.javaneseBrown.withValues(alpha: .7),
-                      fontStyle: FontStyle.italic,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    StringUtils.getDisplayName(user?.displayName),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      color: AppTheme.javaneseBrown,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "Selamat Datang ",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.javaneseBrown.withValues(alpha: .7),
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const WidgetSpan(child: SizedBox(width: 8)),
+                        TextSpan(
+                          text: StringUtils.getDisplayName(user?.displayName),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: AppTheme.javaneseBrown,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
