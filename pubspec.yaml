@@ -116,16 +116,26 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: "#FFFFFF"  # Warna background splash screen
   image: assets/logo.png  # Path ke logo Anda
+    
   
-  # Khusus untuk Android 12+ (ukuran logo lebih besar)
-  android_12:
-    image: assets/logo.png
-    icon_background_color: "#FFFFFF"
-    # image_dark: assets/logo.png  # Optional: logo untuk dark mode
   
   android: true
   ios: true
   web: false
+
+  # Agar image tidak terpotong di Android
+  android_gravity: center
   
+  # Agar image tidak terpotong di iOS
+  ios_content_mode: scaleAspectFit
+  fullscreen: false  
   # Untuk membuat logo lebih besar, pastikan logo di assets/logo.png 
   # memiliki resolusi tinggi (misal: 1024x1024 px atau lebih besar)
+
+  # Konfigurasi khusus Android 12+ - HANYA branding di center
+  android_12:
+    color: "#FFFFFF"
+    # HAPUS icon agar tidak ada logo ganda
+    # Branding untuk logo besar yang tidak terpotong, ditampilkan di center
+    #branding: assets/logo.png
+    branding_mode: center
