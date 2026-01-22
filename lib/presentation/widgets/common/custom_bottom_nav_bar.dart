@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:my_wallet/core/theme/app_theme.dart';
 import 'package:my_wallet/presentation/screens/history_trasaction_screen.dart';
 import 'package:my_wallet/presentation/screens/home_screen.dart';
+import 'package:my_wallet/presentation/screens/setting_screen.dart';
 import 'package:my_wallet/presentation/screens/transaction_screen.dart';
 import 'package:my_wallet/presentation/screens/wallet_screen.dart';
 
@@ -59,6 +60,14 @@ class CustomBottomNavBar extends StatelessWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => WalletScreen(initialIndex: index),
+            ),
+          );
+        }
+
+        if (index == 4) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => SettingScreen(initialIndex: index),
             ),
           );
         }

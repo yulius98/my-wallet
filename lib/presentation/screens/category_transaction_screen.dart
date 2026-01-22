@@ -11,7 +11,12 @@ import 'package:my_wallet/data/models/transaction.dart' as transaction_model;
 
 class TransactionScreen extends StatefulWidget {
   final int initialIndex;
-  const TransactionScreen({super.key, this.initialIndex = 1});
+  final String? selectedCategory;
+  const TransactionScreen({
+    super.key,
+    this.initialIndex = 1,
+    this.selectedCategory,
+  });
 
   @override
   State<TransactionScreen> createState() => _TransactionScreenState();
@@ -32,6 +37,29 @@ class _TransactionScreenState extends State<TransactionScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    // Set kategori dari parameter jika ada
+    if (widget.selectedCategory != null) {
+      _selectedCategory = widget.selectedCategory;
+      // Auto-set tanggal ke bulan saat ini ketika kategori dipilih dari home screen
+      _selectedDate = DateTime.now();
+      
+      // Auto-fill available amount berdasarkan kategori yang dipilih
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateAvailableAmount();
+      });
+    }
+  }
+  
+  void _updateAvailableAmount() {
+    if (_selectedCategory != null) {
+      final amount = _getAmountByCategory(_selectedCategory!);
+      if (amount != null) {
+        setState(() {
+          _availableAmountController.text = 
+              NumberFormat('#,##0', 'en_US').format(amount);
+        });
+      }
+    }
   }
 
   @override
@@ -273,64 +301,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
     }
   }
 
-  List<String> _getCategories() {
-    final user = AuthService.currentUser;
-    if (user == null) {
-      debugPrint('DEBUG: User is null');
-      return [];
-    }
-
-    final userEmail = user.email ?? '';
-    final selectedMonth = _selectedDate?.month;
-    final selectedYear = _selectedDate?.year;
-
-    debugPrint('DEBUG: Selected date: $_selectedDate');
-    debugPrint('DEBUG: Looking for month: $selectedMonth, year: $selectedYear');
-    debugPrint('DEBUG: User email: $userEmail');
-    debugPrint(
-      'DEBUG: Total allocation keys: ${boxAllocationPosts.keys.length}',
-    );
-
-    final categories = <String>{};
-
-    for (var key in boxAllocationPosts.keys) {
-      final keyStr = key.toString();
-      debugPrint('DEBUG: Checking key: $keyStr');
-
-      // Key format: key_{category}_{email}_{YYYYMM}
-      if (keyStr.contains(userEmail)) {
-        // Extract YYYYMM from end of key
-        final parts = keyStr.split('_');
-        if (parts.length >= 2) {
-          final yyyymm = parts.last; // e.g., "202601"
-          debugPrint('DEBUG: Extracted YYYYMM: $yyyymm');
-
-          if (yyyymm.length == 6) {
-            final keyYear = int.tryParse(yyyymm.substring(0, 4));
-            final keyMonth = int.tryParse(yyyymm.substring(4, 6));
-
-            debugPrint(
-              'DEBUG: Parsed - keyYear: $keyYear, keyMonth: $keyMonth',
-            );
-
-            if (keyYear == selectedYear && keyMonth == selectedMonth) {
-              final allocation = boxAllocationPosts.get(key);
-              if (allocation != null) {
-                debugPrint(
-                  'DEBUG: Match found! Adding category: ${allocation.category}',
-                );
-                categories.add(allocation.category);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    debugPrint('DEBUG: Final categories: $categories');
-    return categories.toList();
-  }
-
   double? _getAmountByCategory(String category) {
     final user = AuthService.currentUser;
     if (user == null) return null;
@@ -367,29 +337,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
     return null;
   }
 
-  void _updateAmountByCategory(String? category) {
-    if (category == null) {
-      _availableAmountController.clear();
-      return;
-    }
-
-    final amount = _getAmountByCategory(category);
-    if (amount != null) {
-      _availableAmountController.text = NumberFormat(
-        '#,##0.00',
-        'en_US',
-      ).format(amount);
-    } else {
-      _availableAmountController.clear();
-    }
-  }
-
   Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    // Tanggal pertama bulan ini
+    final firstDateOfMonth = DateTime(now.year, now.month, 1);
+    // Tanggal terakhir bulan ini
+    final lastDateOfMonth = DateTime(now.year, now.month + 1, 0);
+    
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      initialDate: _selectedDate ?? now,
+      firstDate: firstDateOfMonth,
+      lastDate: lastDateOfMonth,
       builder: (context, child) {
         return DatePickerTheme(
           data: DatePickerThemeData(
@@ -407,8 +366,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
       setState(() {
         _selectedDate = picked;
         // Reset category dan amount ketika tanggal berubah
-        _selectedCategory = null;
-        _availableAmountController.clear();
+        //_selectedCategory = null;
+        //_availableAmountController.clear();
       });
     }
   }
@@ -624,6 +583,64 @@ class _TransactionScreenState extends State<TransactionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            const Text(
+              "Kategori :",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade400),
+              ),
+              width: double.infinity,
+              child: Text(
+                _selectedCategory ?? "Kategori belum dipilih",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _selectedCategory != null
+                      ? Colors.black
+                      : Colors.grey.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Jumlah yang Tersedia :",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _availableAmountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                CurrencyInputFormatter(
+                  thousandSeparator: ThousandSeparator.Comma,
+                  mantissaLength: 2,
+                ),
+              ],
+              decoration: InputDecoration(
+                hintText: "Dana yang tersedia",
+                filled: false,
+                fillColor: Colors.white.withValues(alpha: 0.8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text(
               "Tanggal Transaksi :",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
@@ -664,141 +681,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              "Kategori :",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            Builder(
-              builder: (context) {
-                final categories = _getCategories();
-                final hasCategories = categories.isNotEmpty;
-                final isEnabled = _selectedDate != null && hasCategories;
-
-                return SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedCategory,
-                        isExpanded: true,
-                        decoration: InputDecoration(
-                          hintText: _selectedDate == null
-                              ? "Silakan pilih tanggal"
-                              : (hasCategories
-                                    ? "Pilih kategori"
-                                    : "Tidak ada kategori yang tersedia."),
-                          filled: true,
-                          fillColor: isEnabled
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.grey.shade200,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade400),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        items: isEnabled
-                            ? categories.map((String category) {
-                                return DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(
-                                    category,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              }).toList()
-                            : null,
-                        onChanged: isEnabled
-                            ? (String? newValue) {
-                                setState(() {
-                                  _selectedCategory = newValue;
-                                  _updateAmountByCategory(newValue);
-                                });
-                              }
-                            : null,
-                      ),
-                      const SizedBox(height: 4),
-                      // Helper text di luar dropdown
-                      if (_selectedDate == null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4, top: 4),
-                          child: Text(
-                            "Pilih tanggal transaksi untuk melihat kategori yang tersedia.",
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 11,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      else if (!hasCategories)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4, top: 4),
-                          child: Text(
-                            "Tidak ada alokasi untuk bulan ${DateFormat('MMMM yyyy').format(_selectedDate!)}.",
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 11,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      else if (categories.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4, top: 4),
-                          child: Text(
-                            "Kategori tersedia",
-                            style: TextStyle(
-                              color: Colors.green.shade700,
-                              fontSize: 11,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "Jumlah yang Tersedia :",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _availableAmountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                CurrencyInputFormatter(
-                  thousandSeparator: ThousandSeparator.Comma,
-                  mantissaLength: 2,
-                ),
-              ],
-              decoration: InputDecoration(
-                hintText: "Dana yang tersedia",
-                filled: false,
-                fillColor: Colors.white.withValues(alpha: 0.8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
-            ),
+            
+            
+            
           ],
         ),
       ),

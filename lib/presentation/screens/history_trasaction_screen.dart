@@ -90,13 +90,62 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
     final user = AuthService.currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          "Riwayat Transaksi",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: AppTheme.javaneseBrownGradient,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.javaneseGold.withValues(alpha: .2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppTheme.javaneseGold.withValues(alpha: .5),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.receipt,
+                    color: AppTheme.javaneseGoldLight,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  "Riwayat Transaksi",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.javaneseGoldLight,
+                    letterSpacing: 1.5,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black45,
+                        offset: Offset(2, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        backgroundColor: AppTheme.primaryColor,
       ),
 
       bottomNavigationBar: CustomBottomNavBar(
@@ -114,6 +163,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage(AppConstants.backgroundPath),
+            fit: BoxFit.cover,
           ),
         ),
         child: SafeArea(
@@ -122,11 +172,34 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
               children: [
                 const SizedBox(height: 17),
                 Container(
-                  height: 115,
+                  height: 120,
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: AppTheme.cardBackground,
+                    
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppTheme.javaneseBeige,
+                        AppTheme.javanesesCream,
+                        Colors.white.withValues(alpha: .95),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.javaneseGold, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: .4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                        spreadRadius: 2,
+                      ),
+                      BoxShadow(
+                        color: AppTheme.javaneseGold.withValues(alpha: .2),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: Stack(
                     children: [
@@ -249,11 +322,27 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
             itemCount: _filteredTransactions.length,
             itemBuilder: (context, index) {
               final transaction = _filteredTransactions[index];
-              return Card(
+              return Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                elevation: 2,
-                shape: RoundedRectangleBorder(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white,
+                      AppTheme.javanesesCream.withValues(alpha: .5),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.javaneseGold.withValues(alpha: .3),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.javaneseBrown.withValues(alpha: .1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -263,7 +352,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
+                          color: AppTheme.javaneseGold.withValues(alpha: .3),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(

@@ -1,38 +1,41 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'monthly_income.dart';
+part of 'initial_allocation.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class MonthlyIncomeAdapter extends TypeAdapter<MonthlyIncome> {
+class InitialAllocationAdapter extends TypeAdapter<InitialAllocation> {
   @override
-  final int typeId = 2;
+  final int typeId = 4;
 
   @override
-  MonthlyIncome read(BinaryReader reader) {
+  InitialAllocation read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return MonthlyIncome(
-      email: fields[0] as String,
-      date: fields[1] as DateTime,
-      income: fields[2] as double,
+    return InitialAllocation(
+      email: fields[1] as String,
+      category: fields[0] as String,
+      amount: fields[2] as double,
+      date: fields[3] as DateTime,
     );
   }
 
   @override
-  void write(BinaryWriter writer, MonthlyIncome obj) {
+  void write(BinaryWriter writer, InitialAllocation obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
-      ..write(obj.email)
+      ..write(obj.category)
       ..writeByte(1)
-      ..write(obj.date)
+      ..write(obj.email)
       ..writeByte(2)
-      ..write(obj.income);
+      ..write(obj.amount)
+      ..writeByte(3)
+      ..write(obj.date);
   }
 
   @override
@@ -41,7 +44,7 @@ class MonthlyIncomeAdapter extends TypeAdapter<MonthlyIncome> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MonthlyIncomeAdapter &&
+      other is InitialAllocationAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

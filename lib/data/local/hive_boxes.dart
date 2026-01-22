@@ -3,10 +3,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:my_wallet/data/models/allocation_post.dart';
 import 'package:my_wallet/data/models/monthly_income.dart';
 import 'package:my_wallet/data/models/transaction.dart';
+import 'package:my_wallet/data/models/initial_allocation.dart';
 
 late Box<AllocationPost> boxAllocationPosts;
 late Box<MonthlyIncome> boxMonthlyIncomes;
 late Box<Transaction> boxTransactions;
+late Box<InitialAllocation> boxInitialAllocations;
 
 Future<void> initHiveBoxes() async {
   debugPrint('🔧 Starting Hive initialization...');
@@ -17,6 +19,7 @@ Future<void> initHiveBoxes() async {
   Hive.registerAdapter(MonthlyIncomeAdapter());
   Hive.registerAdapter(AllocationPostAdapter());
   Hive.registerAdapter(TransactionAdapter());
+  Hive.registerAdapter(InitialAllocationAdapter());
   debugPrint('✅ Adapters registered');
 
   // Open AllocationPostBox with error handling
@@ -75,6 +78,26 @@ Future<void> initHiveBoxes() async {
     debugPrint('✅ TransactionBox recreated');
   }
 
+
+  // Open InitialAllocation with error handling
+  try {
+    boxInitialAllocations = await Hive.openBox<InitialAllocation>(
+      'InitialAllocation',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
+    );
+    debugPrint(
+      '✅ InitialAllocationBox opened (${boxInitialAllocations.length} items)',
+    );
+  } catch (e) {
+    debugPrint('❌ Error opening InitialAllocationBox: $e');
+    debugPrint('🔄 Deleting corrupt InitialAllocationBox...');
+    await Hive.deleteBoxFromDisk('InitialAllocationBox');
+    boxInitialAllocations = await Hive.openBox<InitialAllocation>(
+      'InitialAllocationBox',
+      compactionStrategy: (entries, deletedEntries) => deletedEntries > 20,
+    );
+    debugPrint('✅ InitialAllocationBox recreated');
+  }
+
   debugPrint('🎉 All Hive boxes initialized successfully');
 }
-

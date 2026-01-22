@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:my_wallet/data/models/allocation_post.dart';
 import 'package:my_wallet/data/local/hive_boxes.dart';
+import 'package:my_wallet/data/models/initial_allocation.dart';
 import 'package:my_wallet/data/models/monthly_income.dart';
 import 'package:my_wallet/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:my_wallet/services/auth_service.dart';
@@ -101,7 +102,7 @@ class _WalletScreenState extends State<WalletScreen> {
   void _loadMonthlyIncome() {
     final user = AuthService.currentUser;
     String userEmail = user?.email ?? 'unknown@email.com';
-    
+
     // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
     String monthYearKey =
         '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
@@ -129,7 +130,8 @@ class _WalletScreenState extends State<WalletScreen> {
     }
 
     // Map untuk menyederhanakan loading allocation data
-    final allocationMap = {
+    final initalAllocationMap = {
+      //final allocationMap = {
       'housing': _housingutilitiesController,
       'food': _foodTransportController,
       'health': _healthInsuranceController,
@@ -144,13 +146,15 @@ class _WalletScreenState extends State<WalletScreen> {
       'entertaiment': _entertainmentSelfRewardController,
     };
 
-    // Load semua allocation data dalam satu loop berdasarkan bulan yang dipilih
-    allocationMap.forEach((key, controller) {
-      final allocation = boxAllocationPosts.get(
+    // Load semua initialallocation data dalam satu loop berdasarkan bulan yang dipilih
+    initalAllocationMap.forEach((key, controller) {
+      final initialAllocation = boxInitialAllocations.get(
         'key_${key}_${userEmail}_$monthYearKey',
       );
-      if (allocation != null) {
-        controller.text = CurrencyUtils.formatCurrency(allocation.amount);
+      if (initialAllocation != null) {
+        controller.text = CurrencyUtils.formatCurrency(
+          initialAllocation.amount,
+        );
       } else {
         controller.clear();
       }
@@ -177,17 +181,68 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Status Edit Mode : $_isEditMode");
+    debugPrint("Status Save Data : $_isDataSaved");
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     final user = AuthService.currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          "Alokasi Pendapatan",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: AppTheme.javaneseBrownGradient,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.javaneseGold.withValues(alpha: .2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppTheme.javaneseGold.withValues(alpha: .5),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.pie_chart_rounded,
+                    color: AppTheme.javaneseGoldLight,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  "Alokasi Pendapatan",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.javaneseGoldLight,
+                    letterSpacing: 1.5,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black45,
+                        offset: Offset(2, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        backgroundColor: AppTheme.primaryColor,
       ),
 
       bottomNavigationBar: CustomBottomNavBar(
@@ -253,7 +308,7 @@ class _WalletScreenState extends State<WalletScreen> {
             left: 10,
             top: 10,
             child: Text(
-              "Pengembangan Diri & Gaya Hidup (10% dari pendapatan)",
+              "Gaya Hidup (10% dari pendapatan)",
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black,
@@ -271,8 +326,8 @@ class _WalletScreenState extends State<WalletScreen> {
                   width: 200,
                   child: Text(
                     "Kesehatan & Olahraga (3%)",
-                  style: TextStyle(fontSize: 13),
-                ),
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
 
                 const SizedBox(width: 10),
@@ -315,10 +370,10 @@ class _WalletScreenState extends State<WalletScreen> {
                   width: 200,
                   child: Text(
                     "Pengembangan Skill & Pendidikan  (4%)",
-                  style: TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
-                ),
-                 
+
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
@@ -357,10 +412,7 @@ class _WalletScreenState extends State<WalletScreen> {
               children: [
                 SizedBox(
                   width: 200,
-                  child: Text(
-                  "Hiburan (3%)",
-                  style: TextStyle(fontSize: 13),
-                ),
+                  child: Text("Hiburan (3%)", style: TextStyle(fontSize: 13)),
                 ),
 
                 const SizedBox(width: 10),
@@ -518,8 +570,8 @@ class _WalletScreenState extends State<WalletScreen> {
                   width: 200,
                   child: Text(
                     "Angsuran Lain (Elektronik, dll) (5%)",
-                  style: TextStyle(fontSize: 13),
-                ),
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
 
                 const SizedBox(width: 10),
@@ -565,7 +617,9 @@ class _WalletScreenState extends State<WalletScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         minimumSize: const Size(0, 50),
       ),
-      onPressed: () {
+      onPressed: _isDataSaved
+          ? null
+          : () {
         final user = AuthService.currentUser;
         String userEmail = user?.email ?? 'unknown@email.com';
 
@@ -654,7 +708,7 @@ class _WalletScreenState extends State<WalletScreen> {
         // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
         String monthYearKey =
             '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
-        
+
         // Simpan data ke Hive
         boxMonthlyIncomes.put(
           'key_income_${userEmail}_$monthYearKey',
@@ -773,9 +827,119 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         );
 
+              boxInitialAllocations.put(
+                'key_housing_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryHousing,
+                  amount: housingAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_food_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryFood,
+                  amount: foodAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_health_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryHealth,
+                  amount: healthAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_otherexpense_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryOther,
+                  amount: otherexpanseAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_emergency_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryEmergency,
+                  amount: emergencyAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_investement_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryInvestment,
+                  amount: investmentAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_installments_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryInstallments,
+                  amount: installmentAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_creditcards_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryCreditCardInstalments,
+                  amount: creditcardAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_otherInstallments_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryOtherInstalments,
+                  amount: otherInstallmentAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_healths_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categoryHealthFitness,
+                  amount: healthfitnessAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_skilleducation_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categorySkillsDevelopmentEducation,
+                  amount: skillseducationAmount,
+                ),
+              );
+              boxInitialAllocations.put(
+                'key_entertaiment_${userEmail}_$monthYearKey',
+                InitialAllocation(
+                  date: _selectedMonth,
+                  email: userEmail,
+                  category: AppConstants.categorySntertainmentSelfReward,
+                  amount: entertaimentAmount,
+                ),
+              );
+
         // Force flush data ke disk untuk memastikan data benar-benar tersimpan
         boxMonthlyIncomes.flush();
         boxAllocationPosts.flush();
+              boxInitialAllocations.flush();
 
         // Debug logging untuk verifikasi
         debugPrint('💾 Data saved for $userEmail - Month: $monthYearKey');
@@ -785,6 +949,9 @@ class _WalletScreenState extends State<WalletScreen> {
         debugPrint(
           '💾 Total items in boxMonthlyIncomes: ${boxMonthlyIncomes.length}',
         );
+              debugPrint(
+                '💾 Total items in boxInitialAllocation: ${boxInitialAllocations.length}',
+              );
 
         setState(() {
           // Trigger rebuild untuk update UI
@@ -829,17 +996,17 @@ class _WalletScreenState extends State<WalletScreen> {
   ElevatedButton _editDataButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: _isDataSaved ? Colors.orange : Colors.grey,
+        backgroundColor: _isDataSaved ? Colors.grey : Colors.orange,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12),
         minimumSize: const Size(0, 50),
       ),
+
       onPressed: _isDataSaved
-          ? () {
-              // Logika untuk edit data
+          ? null
+          : () {
               _editData();
-            }
-          : null,
+            },
       child: Text(_isEditMode ? "Batal Edit" : "Edit Data"),
     );
   }
@@ -847,6 +1014,7 @@ class _WalletScreenState extends State<WalletScreen> {
   void _editData() {
     setState(() {
       _isEditMode = !_isEditMode;
+      debugPrint("🔄 Edit mode changed to: $_isEditMode");
     });
 
     if (_isEditMode) {
@@ -946,8 +1114,8 @@ class _WalletScreenState extends State<WalletScreen> {
                   width: 200,
                   child: Text(
                     "Investasi Jangka Panjang (Pensiun, Kebabasan Finansial) (15%)",
-                  style: TextStyle(fontSize: 13),
-                ),
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ),
 
                 const SizedBox(width: 10),
@@ -1156,7 +1324,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
-                
+
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
@@ -1261,7 +1429,7 @@ class _WalletScreenState extends State<WalletScreen> {
               const Text(
                 "Pendapatan Bulanan",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),  
+              ),
               const SizedBox(width: 15),
               Expanded(
                 child: TextFormField(
@@ -1286,7 +1454,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     ),
                   ),
                 ),
-              ),  
+              ),
             ],
           ),
           const SizedBox(height: 15),
@@ -1303,11 +1471,13 @@ class _WalletScreenState extends State<WalletScreen> {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12),
       ),
-      onPressed: () {
-        // Parse income menggunakan utility
-        double income = CurrencyUtils.parseAmount(
-          _monthlyIncomeController.text,
-        );
+      onPressed: _isDataSaved
+          ? null
+          : () {
+              // Parse income menggunakan utility
+              double income = CurrencyUtils.parseAmount(
+                _monthlyIncomeController.text,
+              );
 
         // Format dan set ke controller menggunakan utility dan constants
         _housingutilitiesController.text = CurrencyUtils.formatAllocation(

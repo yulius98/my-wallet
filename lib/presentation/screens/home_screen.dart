@@ -3,6 +3,7 @@ import 'package:my_wallet/data/local/hive_boxes.dart';
 import 'package:my_wallet/data/models/allocation_post.dart';
 //import 'package:my_wallet/data/models/transaction.dart';
 import 'package:my_wallet/presentation/widgets/common/custom_bottom_nav_bar.dart';
+import 'package:my_wallet/presentation/screens/category_transaction_screen.dart';
 import 'package:my_wallet/core/constants/app_constants.dart';
 import 'package:my_wallet/core/theme/app_theme.dart';
 import 'package:my_wallet/core/utils/string_utils.dart';
@@ -109,31 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            actions: [
-              Container(
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: AppTheme.javaneseMaroon.withValues(alpha: .8),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppTheme.javaneseGold.withValues(alpha: .5),
-                    width: 1,
-                  ),
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.logout,
-                    color: AppTheme.javaneseGoldLight,
-                  ),
-                  onPressed: () async {
-                    await AuthService.signOut();
-                    if (context.mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
-                  },
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -169,17 +145,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           child: SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                _greeting(context, user),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  _greeting(context, user),
 
-                const SizedBox(height: 20),
-                _card(user),
+                  const SizedBox(height: 12),
+                  _card(user),
 
-                const SizedBox(height: 20),
-                _listcategory(),
-              ],
+                  const SizedBox(height: 12),
+                  _listcategory(),
+                  const SizedBox(height: 16), // Padding bawah
+                ],
+              ),
             ),
           ),
         ),
@@ -187,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Expanded _listcategory() {
+  Widget _listcategory() {
     final user = AuthService.currentUser;
     final userEmail = user?.email ?? '';
 
@@ -214,174 +193,183 @@ class _HomeScreenState extends State<HomeScreen> {
 
     debugPrint('📊 Total filtered allocations: ${userAllocations.length}');
 
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.javaneseGoldGradient,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.javaneseGoldGradient,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Alokasi Dana',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.javaneseBrown,
-                    letterSpacing: 0.5,
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Alokasi Dana',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.javaneseBrown,
+                  letterSpacing: 0.5,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Expanded(
-            child: userAllocations.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.account_balance_wallet_outlined,
-                          size: 80,
-                          color: AppTheme.javaneseBrown.withValues(alpha: .3),
+        ),
+        userAllocations.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 80,
+                        color: AppTheme.javaneseBrown.withValues(alpha: .3),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Belum ada alokasi dana',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.javaneseBrown.withValues(alpha: .6),
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Belum ada alokasi dana',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppTheme.javaneseBrown.withValues(alpha: .6),
-                            fontWeight: FontWeight.w500,
-                          ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: userAllocations.length,
+                itemBuilder: (context, index) {
+                  AllocationPost allocationPost = userAllocations[index];
+                  return Container(
+                    //margin: const EdgeInsets.symmetric(horizontal: 20),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white,
+                          AppTheme.javanesesCream.withValues(alpha: .5),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.javaneseGold.withValues(alpha: .3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.javaneseBrown.withValues(alpha: .1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: userAllocations.length,
-                    itemBuilder: (context, index) {
-                      AllocationPost allocationPost = userAllocations[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white,
-                              AppTheme.javanesesCream.withValues(alpha: .5),
-                            ],
+                    child: ListTile(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransactionScreen(
+                              initialIndex: 1,
+                              selectedCategory: allocationPost.category,
+                            ),
                           ),
+                        );
+                      },
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.javaneseGoldGradient,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppTheme.javaneseGold.withValues(alpha: .3),
-                            width: 1.5,
+                            color: AppTheme.javaneseGold,
+                            width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.javaneseBrown.withValues(
-                                alpha: .1,
+                              color: AppTheme.javaneseGold.withValues(
+                                alpha: .3,
                               ),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          leading: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              gradient: AppTheme.javaneseGoldGradient,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppTheme.javaneseGold,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.javaneseGold.withValues(
-                                    alpha: .3,
-                                  ),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.account_balance_wallet,
-                              color: AppTheme.javaneseBrown,
-                              size: 24,
-                            ),
-                          ),
-                          title: Text(
-                            allocationPost.category,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: AppTheme.javaneseBrown,
-                              letterSpacing: 0.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              'Rp ${NumberFormat('#,##0', 'id_ID').format(allocationPost.amount)}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.javaneseMaroon,
-                              ),
-                            ),
-                          ),
-                          trailing: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.javaneseGold.withValues(
-                                alpha: .2,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: AppTheme.javaneseGold.withValues(
-                                  alpha: .5,
-                                ),
-                                width: 1,
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: AppTheme.javaneseBrown,
-                            ),
+                        child: Icon(
+                          Icons.account_balance_wallet,
+                          color: AppTheme.javaneseBrown,
+                          size: 24,
+                        ),
+                      ),
+                      title: Text(
+                        allocationPost.category,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: AppTheme.javaneseBrown,
+                          letterSpacing: 0.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Rp ${NumberFormat('#,##0', 'id_ID').format(allocationPost.amount)}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.javaneseMaroon,
                           ),
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                      ),
+                      trailing: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.javaneseGold.withValues(alpha: .2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppTheme.javaneseGold.withValues(alpha: .5),
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: AppTheme.javaneseBrown,
+                          
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ],
     );
   }
 
-  AspectRatio _card(User? user) {
+  Widget _card(User? user) {
     final userEmail = user?.email ?? '';
     final now = DateTime.now();
-    
+
     final totalTransaksi = boxTransactions.values
         .where(
           (transaction) =>
@@ -390,7 +378,6 @@ class _HomeScreenState extends State<HomeScreen> {
               transaction.date.month == now.month,
         )
         .fold<double>(0.0, (sum, transaction) => sum + transaction.amount);
-
 
     // Filter income berdasarkan email user dan bulan/tahun saat ini
     final filteredIncomes = boxMonthlyIncomes.values.where(
@@ -404,131 +391,187 @@ class _HomeScreenState extends State<HomeScreen> {
         ? filteredIncomes.first.income
         : 0.0;
 
-    return AspectRatio(
-      aspectRatio: 336 / 200,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppConstants.backgroundCard),
-            fit: BoxFit.cover,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.javaneseGold, width: 3),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: .4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-              spreadRadius: 2,
-            ),
-            BoxShadow(
-              color: AppTheme.javaneseGold.withValues(alpha: .2),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 10,
-              top: 10,
-              child: Text(
-                DateFormat("MMMM yyyy").format(DateTime.now()),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppTheme.javaneseGoldLight,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Gunakan aspect ratio yang lebih kecil pada layar dengan tinggi terbatas
+        final screenHeight = MediaQuery.of(context).size.height;
+        final aspectRatio = screenHeight < 700 ? 336 / 180 : 336 / 200;
 
-            Positioned(
-              right: 12,
-              top: 40,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.javaneseGold, width: 3),
-                  image: user?.photoURL != null && user!.photoURL!.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(user.photoURL!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: user?.photoURL == null || user!.photoURL!.isEmpty
-                    ? Icon(Icons.person, size: 50, color: AppTheme.javaneseGold)
-                    : null,
+        return AspectRatio(
+          aspectRatio: aspectRatio,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(AppConstants.backgroundCard),
+                fit: BoxFit.cover,
               ),
-            ),
-
-            Positioned(
-              left: 10,
-              top: 60,
-              child: Text(
-                "Pendapatan Bulan Ini",
-                style: TextStyle(
-                  color: AppTheme.javaneseGoldLight.withValues(alpha: .8),
-                  fontSize: 14,
-                  letterSpacing: 0.5,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppTheme.javaneseGold, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                  spreadRadius: 2,
                 ),
-              ),
+                BoxShadow(
+                  color: AppTheme.javaneseGold.withValues(alpha: .2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
+            child: LayoutBuilder(
+              builder: (context, cardConstraints) {
+                // Hitung scaling factor berdasarkan lebar card
+                final cardWidth = cardConstraints.maxWidth;
+                final cardHeight = cardConstraints.maxHeight;
 
-            Positioned(
-              left: 10,
-              top: 80,
-              child: Text(
-                "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount)}",
-                style: const TextStyle(
-                  color: AppTheme.javaneseGoldLight,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black45,
-                      offset: Offset(2, 2),
-                      blurRadius: 4,
+                // Base scaling dari lebar card (336 adalah lebar base)
+                final scale = cardWidth / 336;
+
+                return Stack(
+                  children: [
+                    // Tanggal - responsive position & size
+                    Positioned(
+                      left: cardWidth * 0.03,
+                      top: cardHeight * 0.05,
+                      child: Text(
+                        DateFormat("MMMM yyyy").format(DateTime.now()),
+                        style: TextStyle(
+                          fontSize: 14 * scale,
+                          color: AppTheme.javaneseGoldLight,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+
+                    // Profile photo - responsive size & position
+                    Positioned(
+                      right: cardWidth * 0.035,
+                      top: cardHeight * 0.2,
+                      child: Container(
+                        width: cardWidth * 0.24,
+                        height: cardWidth * 0.24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(20 * scale),
+                          border: Border.all(
+                            color: AppTheme.javaneseGold,
+                            width: 3 * scale,
+                          ),
+                          image:
+                              user?.photoURL != null &&
+                                  user!.photoURL!.isNotEmpty
+                              ? DecorationImage(
+                                  image: NetworkImage(user.photoURL!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: user?.photoURL == null || user!.photoURL!.isEmpty
+                            ? Icon(
+                                Icons.person,
+                                size: 50 * scale,
+                                color: AppTheme.javaneseGold,
+                              )
+                            : null,
+                      ),
+                    ),
+
+                    // Label "Pendapatan Bulan Ini" - responsive
+                    Positioned(
+                      left: cardWidth * 0.03,
+                      top: cardHeight * 0.3,
+                      right: cardWidth * 0.3,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Pendapatan Bulan Ini",
+                          style: TextStyle(
+                            color: AppTheme.javaneseGoldLight.withValues(
+                              alpha: .8,
+                            ),
+                            fontSize: 13 * scale,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Jumlah pendapatan - responsive
+                    Positioned(
+                      left: cardWidth * 0.03,
+                      top: cardHeight * 0.4,
+                      right: cardWidth * 0.3,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount)}",
+                          style: TextStyle(
+                            color: AppTheme.javaneseGoldLight,
+                            fontSize: 16 * scale,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                            shadows: const [
+                              Shadow(
+                                color: Colors.black45,
+                                offset: Offset(2, 2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Label "Dana yang Bisa Digunakan" - responsive
+                    Positioned(
+                      left: cardWidth * 0.15,
+                      top: cardHeight * 0.6,
+                      right: cardWidth * 0.05,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Dana yang Bisa Digunakan :",
+                          style: TextStyle(
+                            color: AppTheme.javaneseGoldLight,
+                            fontSize: 13 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Jumlah dana tersisa - responsive
+                    Positioned(
+                      left: cardWidth * 0.19,
+                      top: cardHeight * 0.7,
+                      right: cardWidth * 0.05,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount - totalTransaksi)}",
+                          style: TextStyle(
+                            color: AppTheme.javaneseGoldLight,
+                            fontSize: 15 * scale,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
-                ),
-              ),
+                );
+              },
             ),
-
-            Positioned(
-              left: 35,
-              top: 120,
-              child: Text(
-                "Dana yang Bisa Digunakan :",
-                style: TextStyle(
-                  color: AppTheme.javaneseGoldLight,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-
-            Positioned(
-              left: 60,
-              top: 140,
-              child: Text(
-                "Rp ${NumberFormat('#,##0', 'id_ID').format(incomeAmount - totalTransaksi)}",
-                style: TextStyle(
-                  color: AppTheme.javaneseGoldLight,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
