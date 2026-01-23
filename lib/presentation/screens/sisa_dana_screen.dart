@@ -1,35 +1,28 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:my_wallet/data/models/allocation_post.dart';
-import 'package:my_wallet/data/local/hive_boxes.dart';
-import 'package:my_wallet/data/models/initial_allocation.dart';
-import 'package:my_wallet/data/models/monthly_income.dart';
-import 'package:my_wallet/presentation/widgets/common/custom_bottom_nav_bar.dart';
-import 'package:my_wallet/services/auth_service.dart';
-import 'package:my_wallet/core/constants/app_constants.dart';
-import 'package:my_wallet/core/theme/app_theme.dart';
-import 'package:my_wallet/core/utils/string_utils.dart';
-import 'package:my_wallet/core/utils/currency_utils.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:intl/intl.dart';
+import 'package:my_wallet/core/theme/app_theme.dart';
+import 'package:my_wallet/presentation/screens/home_screen.dart';
+import 'package:my_wallet/services/auth_service.dart';
+import 'package:my_wallet/data/local/hive_boxes.dart';
+import 'package:my_wallet/core/utils/currency_utils.dart';
 import 'package:my_wallet/presentation/widgets/common/month_picker_bottom_sheet.dart';
 
-class WalletScreen extends StatefulWidget {
-  final int initialIndex;
-  const WalletScreen({super.key, this.initialIndex = 3});
+class SisaDanaScreen extends StatefulWidget {
+  const SisaDanaScreen({super.key});
 
   @override
-  State<WalletScreen> createState() => _WalletScreenState();
+  State<SisaDanaScreen> createState() => _SisaDanaScreenState();
 }
 
-class _WalletScreenState extends State<WalletScreen> {
-  late int _currentIndex;
+class _SisaDanaScreenState extends State<SisaDanaScreen> {
   DateTime _selectedMonth = DateTime.now();
-  bool _isEditMode = false;
-  bool _isDataSaved = false;
 
   final TextEditingController _monthlyIncomeController =
+      TextEditingController();
+  final TextEditingController _remainingFundsController =
       TextEditingController();
   final TextEditingController _housingutilitiesController =
       TextEditingController();
@@ -56,16 +49,120 @@ class _WalletScreenState extends State<WalletScreen> {
   final TextEditingController _entertainmentSelfRewardController =
       TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.initialIndex;
-    _loadMonthlyIncome();
-  }
-
   String get formattedMonth {
     return DateFormat('MMMM yyyy').format(_selectedMonth);
   }
+
+  // Fungsi untuk menghitung total transaksi berdasarkan bulan yang dipilih
+  double _calculateTotalTransactions() {
+    final user = AuthService.currentUser;
+    if (user == null) return 0.0;
+
+    String userEmail = user.email ?? 'unknown@email.com';
+    double totalTransactions = 0.0;
+
+    // Iterasi semua transaksi di box
+    for (var transaction in boxTransactions.values) {
+      // Filter transaksi berdasarkan email, bulan, dan tahun
+      if (transaction.email == userEmail &&
+          transaction.date.year == _selectedMonth.year &&
+          transaction.date.month == _selectedMonth.month) {
+        totalTransactions += transaction.amount;
+      }
+    }
+
+    return totalTransactions;
+  }
+
+  // Fungsi untuk mengupdate remaining funds
+  void _updateRemainingFunds() {
+    final user = AuthService.currentUser;
+    if (user == null) {
+      _remainingFundsController.clear();
+      return;
+    }
+
+    String userEmail = user.email ?? 'unknown@email.com';
+    String monthYearKey =
+        '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
+
+    // Ambil monthly income
+    final monthlyIncome = boxMonthlyIncomes.get(
+      'key_income_${userEmail}_$monthYearKey',
+    );
+
+    if (monthlyIncome != null) {
+      // Hitung total transaksi
+      double totalTransactions = _calculateTotalTransactions();
+      
+      // Hitung sisa dana
+      double remainingFunds = monthlyIncome.income - totalTransactions;
+      
+      // Update controller
+      _remainingFundsController.text = CurrencyUtils.formatCurrency(
+        remainingFunds,
+      );
+    } else {
+      _remainingFundsController.clear();
+    }
+  }
+
+  void _loadMonthlyIncome() {
+    final user = AuthService.currentUser;
+    String userEmail = user?.email ?? 'unknown@email.com';
+
+    // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
+    String monthYearKey =
+        '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
+
+    // Load monthly income berdasarkan bulan yang dipilih
+    final monthlyIncome = boxMonthlyIncomes.get(
+      'key_income_${userEmail}_$monthYearKey',
+    );
+    
+
+    if (monthlyIncome != null) {
+      _monthlyIncomeController.text = CurrencyUtils.formatCurrency(
+        monthlyIncome.income,
+      );
+    } else {
+      _monthlyIncomeController.clear();
+    }
+
+    // Map untuk menyederhanakan loading allocation data
+    final allocationMap = {
+      //final allocationMap = {
+      'housing': _housingutilitiesController,
+      'food': _foodTransportController,
+      'health': _healthInsuranceController,
+      'otherexpense': _otherRegularExpensesController,
+      'emergency': _emergencyFundController,
+      'investement': _longTermInvestmentController,
+      'installments': _installmentsOutsideMortgagesController,
+      'creditcards': _creditCardInstalmentsController,
+      'otherInstallments': _otherInstalmentsController,
+      'healths': _healthFitnessController,
+      'skilleducation': _skillsDevelopmentEducationController,
+      'entertaiment': _entertainmentSelfRewardController,
+    };
+
+    // Load semua initialallocation data dalam satu loop berdasarkan bulan yang dipilih
+    allocationMap.forEach((key, controller) {
+      final allocation = boxAllocationPosts.get(
+        'key_${key}_${userEmail}_$monthYearKey',
+      );
+      if (allocation != null) {
+        controller.text = CurrencyUtils.formatCurrency(allocation.amount);
+      } else {
+        controller.clear();
+      }
+    });
+
+    // Update remaining funds setelah load data
+    _updateRemainingFunds();
+  }
+
+  
 
   void _openMonthPicker() async {
     final result = await showModalBottomSheet<DateTime>(
@@ -99,71 +196,17 @@ class _WalletScreenState extends State<WalletScreen> {
     });
   }
 
-  void _loadMonthlyIncome() {
-    final user = AuthService.currentUser;
-    String userEmail = user?.email ?? 'unknown@email.com';
-
-    // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
-    String monthYearKey =
-        '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
-
-    // Load monthly income berdasarkan bulan yang dipilih
-    final monthlyIncome = boxMonthlyIncomes.get(
-      'key_income_${userEmail}_$monthYearKey',
-    );
-    if (monthlyIncome != null) {
-      _monthlyIncomeController.text = CurrencyUtils.formatCurrency(
-        monthlyIncome.income,
-      );
-      // Data sudah ada di database, tandai sebagai saved
-      setState(() {
-        _isDataSaved = true;
-        _isEditMode = false;
-      });
-    } else {
-      _monthlyIncomeController.clear();
-      // Data belum ada, tandai sebagai belum saved
-      setState(() {
-        _isDataSaved = false;
-        _isEditMode = false;
-      });
-    }
-
-    // Map untuk menyederhanakan loading allocation data
-    final initalAllocationMap = {
-      //final allocationMap = {
-      'housing': _housingutilitiesController,
-      'food': _foodTransportController,
-      'health': _healthInsuranceController,
-      'otherexpense': _otherRegularExpensesController,
-      'emergency': _emergencyFundController,
-      'investement': _longTermInvestmentController,
-      'installments': _installmentsOutsideMortgagesController,
-      'creditcards': _creditCardInstalmentsController,
-      'otherInstallments': _otherInstalmentsController,
-      'healths': _healthFitnessController,
-      'skilleducation': _skillsDevelopmentEducationController,
-      'entertaiment': _entertainmentSelfRewardController,
-    };
-
-    // Load semua initialallocation data dalam satu loop berdasarkan bulan yang dipilih
-    initalAllocationMap.forEach((key, controller) {
-      final initialAllocation = boxInitialAllocations.get(
-        'key_${key}_${userEmail}_$monthYearKey',
-      );
-      if (initialAllocation != null) {
-        controller.text = CurrencyUtils.formatCurrency(
-          initialAllocation.amount,
-        );
-      } else {
-        controller.clear();
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    // Load data saat screen pertama kali dibuka
+    _loadMonthlyIncome();
   }
 
   @override
   void dispose() {
     _monthlyIncomeController.dispose();
+    _remainingFundsController.dispose();
     _housingutilitiesController.dispose();
     _foodTransportController.dispose();
     _healthInsuranceController.dispose();
@@ -181,10 +224,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("Status Edit Mode : $_isEditMode");
-    debugPrint("Status Save Data : $_isDataSaved");
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-    final user = AuthService.currentUser;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -206,25 +246,36 @@ class _WalletScreenState extends State<WalletScreen> {
             elevation: 0,
             title: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.javaneseGold.withValues(alpha: .2),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppTheme.javaneseGold.withValues(alpha: .5),
-                      width: 1,
+                InkWell(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(initialIndex: 0),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.javaneseGold.withValues(alpha: .2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppTheme.javaneseGold.withValues(alpha: .5),
+                        width: 1,
+                      ),
                     ),
-                  ),
-                  child: const Icon(
-                    Icons.pie_chart_rounded,
-                    color: AppTheme.javaneseGoldLight,
-                    size: 24,
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: AppTheme.javaneseGoldLight,
+                      size: 24,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 const Text(
-                  "Alokasi Pendapatan",
+                  "Sisa Dana",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -245,21 +296,16 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
       ),
 
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        user: user,
-        onTab: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
-
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppConstants.backgroundPath),
-            fit: BoxFit.cover,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppTheme.javaneseBeige,
+              AppTheme.javanesesCream,
+              Colors.white.withValues(alpha: .95),
+            ],
           ),
         ),
         child: SafeArea(
@@ -267,10 +313,7 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 17),
-                _cardpersonaldata(user),
-
-                const SizedBox(height: 17),
-                _monthlyincome(),
+                _monthlyIncome(AuthService.currentUser),
 
                 const SizedBox(height: 17),
                 _categoryLivingExpenses(),
@@ -283,9 +326,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
                 const SizedBox(height: 17),
                 _categoryLifestyle(),
-
-                const SizedBox(height: 17),
-                _actionButtons(),
               ],
             ),
           ),
@@ -362,8 +402,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -406,8 +446,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -447,8 +487,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -536,8 +576,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -580,8 +620,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -624,8 +664,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -643,433 +683,6 @@ class _WalletScreenState extends State<WalletScreen> {
         ],
       ),
     );
-  }
-
-  ElevatedButton _saveAllocationPost() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        minimumSize: const Size(0, 50),
-      ),
-      onPressed: _isDataSaved
-          ? null
-          : () {
-        final user = AuthService.currentUser;
-        String userEmail = user?.email ?? 'unknown@email.com';
-
-        // Parse amount dari controller text menggunakan utility
-        double incomeAmount = CurrencyUtils.parseAmount(
-          _monthlyIncomeController.text,
-        );
-        double housingAmount = CurrencyUtils.parseAmount(
-          _housingutilitiesController.text,
-        );
-        double foodAmount = CurrencyUtils.parseAmount(
-          _foodTransportController.text,
-        );
-        double healthAmount = CurrencyUtils.parseAmount(
-          _healthInsuranceController.text,
-        );
-        double otherexpanseAmount = CurrencyUtils.parseAmount(
-          _otherRegularExpensesController.text,
-        );
-        double emergencyAmount = CurrencyUtils.parseAmount(
-          _emergencyFundController.text,
-        );
-        double investmentAmount = CurrencyUtils.parseAmount(
-          _longTermInvestmentController.text,
-        );
-        double installmentAmount = CurrencyUtils.parseAmount(
-          _installmentsOutsideMortgagesController.text,
-        );
-        double creditcardAmount = CurrencyUtils.parseAmount(
-          _creditCardInstalmentsController.text,
-        );
-        double otherInstallmentAmount = CurrencyUtils.parseAmount(
-          _otherInstalmentsController.text,
-        );
-        double healthfitnessAmount = CurrencyUtils.parseAmount(
-          _healthFitnessController.text,
-        );
-        double skillseducationAmount = CurrencyUtils.parseAmount(
-          _skillsDevelopmentEducationController.text,
-        );
-        double entertaimentAmount = CurrencyUtils.parseAmount(
-          _entertainmentSelfRewardController.text,
-        );
-
-        double totAllocation =
-            housingAmount +
-            foodAmount +
-            healthAmount +
-            otherexpanseAmount +
-            emergencyAmount +
-            investmentAmount +
-            installmentAmount +
-            creditcardAmount +
-            otherInstallmentAmount +
-            healthfitnessAmount +
-            skillseducationAmount +
-            entertaimentAmount;
-
-        // Hitung selisih antara income dan total alokasi
-        double difference = incomeAmount - totAllocation;
-
-        // Validasi: cek apakah alokasi sudah sesuai dengan income
-        if (difference != 0) {
-          // Jika masih ada sisa atau kelebihan alokasi, tampilkan error
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                difference > 0
-                    ? 'Masih terdapat pendapatan yang belum dialokasikan sebesar: Rp. ${NumberFormat('#,##0', 'id_ID').format(difference.abs())}'
-                    : 'Total alokasi melebihi pendapatan: Rp. ${NumberFormat('#,##0', 'id_ID').format(difference.abs())}',
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(
-                label: 'OK',
-                textColor: Colors.white,
-                onPressed: () {},
-              ),
-            ),
-          );
-          return; // Batalkan penyimpanan data
-        }
-
-        // Jika validasi lolos (difference == 0), simpan data
-        // Format bulan-tahun untuk key (contoh: 202601 untuk Januari 2026)
-        String monthYearKey =
-            '${_selectedMonth.year}${_selectedMonth.month.toString().padLeft(2, '0')}';
-
-        // Simpan data ke Hive
-        boxMonthlyIncomes.put(
-          'key_income_${userEmail}_$monthYearKey',
-          MonthlyIncome(
-            email: userEmail,
-            date: _selectedMonth,
-            income: incomeAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_housing_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryHousing,
-            amount: housingAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_food_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryFood,
-            amount: foodAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_health_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryHealth,
-            amount: healthAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_otherexpense_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryOther,
-            amount: otherexpanseAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_emergency_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryEmergency,
-            amount: emergencyAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_investement_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryInvestment,
-            amount: investmentAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_installments_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryInstallments,
-            amount: installmentAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_creditcards_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryCreditCardInstalments,
-            amount: creditcardAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_otherInstallments_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryOtherInstalments,
-            amount: otherInstallmentAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_healths_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categoryHealthFitness,
-            amount: healthfitnessAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_skilleducation_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categorySkillsDevelopmentEducation,
-            amount: skillseducationAmount,
-          ),
-        );
-        boxAllocationPosts.put(
-          'key_entertaiment_${userEmail}_$monthYearKey',
-          AllocationPost(
-            date: _selectedMonth,
-            email: userEmail,
-            category: AppConstants.categorySntertainmentSelfReward,
-            amount: entertaimentAmount,
-          ),
-        );
-
-              boxInitialAllocations.put(
-                'key_housing_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryHousing,
-                  amount: housingAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_food_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryFood,
-                  amount: foodAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_health_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryHealth,
-                  amount: healthAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_otherexpense_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryOther,
-                  amount: otherexpanseAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_emergency_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryEmergency,
-                  amount: emergencyAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_investement_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryInvestment,
-                  amount: investmentAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_installments_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryInstallments,
-                  amount: installmentAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_creditcards_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryCreditCardInstalments,
-                  amount: creditcardAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_otherInstallments_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryOtherInstalments,
-                  amount: otherInstallmentAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_healths_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categoryHealthFitness,
-                  amount: healthfitnessAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_skilleducation_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categorySkillsDevelopmentEducation,
-                  amount: skillseducationAmount,
-                ),
-              );
-              boxInitialAllocations.put(
-                'key_entertaiment_${userEmail}_$monthYearKey',
-                InitialAllocation(
-                  date: _selectedMonth,
-                  email: userEmail,
-                  category: AppConstants.categorySntertainmentSelfReward,
-                  amount: entertaimentAmount,
-                ),
-              );
-
-        // Force flush data ke disk untuk memastikan data benar-benar tersimpan
-        boxMonthlyIncomes.flush();
-        boxAllocationPosts.flush();
-              boxInitialAllocations.flush();
-
-        // Debug logging untuk verifikasi
-        debugPrint('💾 Data saved for $userEmail - Month: $monthYearKey');
-        debugPrint(
-          '💾 Total items in boxAllocationPosts: ${boxAllocationPosts.length}',
-        );
-        debugPrint(
-          '💾 Total items in boxMonthlyIncomes: ${boxMonthlyIncomes.length}',
-        );
-              debugPrint(
-                '💾 Total items in boxInitialAllocation: ${boxInitialAllocations.length}',
-              );
-
-        setState(() {
-          // Trigger rebuild untuk update UI
-          _isDataSaved = true;
-          _isEditMode = false;
-        });
-
-        // Menampilkan snackbar setelah data berhasil disimpan
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Data berhasil disimpan!'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: 'OK',
-              textColor: Colors.white,
-              onPressed: () {
-                // Menutup snackbar saat tombol OK ditekan
-              },
-            ),
-          ),
-        );
-      },
-      child: const Text("Simpan Data"),
-    );
-  }
-
-  Widget _actionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Expanded(child: _saveAllocationPost()),
-          const SizedBox(width: 12),
-          Expanded(child: _editDataButton()),
-        ],
-      ),
-    );
-  }
-
-  ElevatedButton _editDataButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _isDataSaved ? Colors.grey : Colors.orange,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        minimumSize: const Size(0, 50),
-      ),
-
-      onPressed: _isDataSaved
-          ? null
-          : () {
-              _editData();
-            },
-      child: Text(_isEditMode ? "Batal Edit" : "Edit Data"),
-    );
-  }
-
-  void _editData() {
-    setState(() {
-      _isEditMode = !_isEditMode;
-      debugPrint("🔄 Edit mode changed to: $_isEditMode");
-    });
-
-    if (_isEditMode) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mode edit diaktifkan'),
-          backgroundColor: Colors.blue,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mode edit dinonaktifkan'),
-          backgroundColor: Colors.grey,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   Container _categorySavingInvestment() {
@@ -1141,8 +754,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1186,8 +799,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1276,8 +889,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1321,8 +933,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                      
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1366,8 +978,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                    
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1411,8 +1023,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      hintText: "Masukkan Jumlah",
-                      filled: _isEditMode,
+                     
+                      filled: false,
                       fillColor: Colors.white.withValues(alpha: 0.8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1432,9 +1044,9 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Padding _monthlyincome() {
+  Padding _monthlyIncome(User? user) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsetsGeometry.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1446,8 +1058,8 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.chevron_left),
                 onPressed: _previousMonth,
+                icon: const Icon(Icons.chevron_left),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -1495,12 +1107,11 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             ],
           ),
-          //
           const SizedBox(height: 10),
           Row(
             children: [
               const Text(
-                "Pendapatan Bulanan",
+                "Pendapatan Bulan :",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               const SizedBox(width: 15),
@@ -1514,166 +1125,35 @@ class _WalletScreenState extends State<WalletScreen> {
                       mantissaLength: 2,
                     ),
                   ],
-                  decoration: InputDecoration(
-                    hintText: "Masukkan Jumlah",
-                    filled: _isEditMode,
-                    fillColor: Colors.white.withValues(alpha: 0.8),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
-          _calcIncomeAllocation(),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Text(
+                "Sisa Dana :",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+
+              const SizedBox(width: 75),
+              Expanded(
+                child: TextFormField(
+                  controller: _remainingFundsController,
+                  readOnly: true,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    CurrencyInputFormatter(
+                      thousandSeparator: ThousandSeparator.Comma,
+                      mantissaLength: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
-      ),
-    );
-  }
-
-  ElevatedButton _calcIncomeAllocation() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-      ),
-      onPressed: _isDataSaved
-          ? null
-          : () {
-              // Parse income menggunakan utility
-              double income = CurrencyUtils.parseAmount(
-                _monthlyIncomeController.text,
-              );
-
-        // Format dan set ke controller menggunakan utility dan constants
-        _housingutilitiesController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.housingPercentage,
-        );
-        _foodTransportController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.foodTransportPercentage,
-        );
-        _healthInsuranceController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.healthInsurancePercentage,
-        );
-        _otherRegularExpensesController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.otherExpensesPercentage,
-        );
-        _emergencyFundController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.emergencyFundPercentage,
-        );
-        _longTermInvestmentController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.longTermInvestmentPercentage,
-        );
-        _installmentsOutsideMortgagesController.text =
-            CurrencyUtils.formatAllocation(
-              income,
-              AppConstants.installmentsOutsideMortgages,
-            );
-        _creditCardInstalmentsController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.creditCardInstalments,
-        );
-        _otherInstalmentsController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.otherInstalments,
-        );
-        _healthFitnessController.text = CurrencyUtils.formatAllocation(
-          income,
-          AppConstants.healthFitness,
-        );
-        _skillsDevelopmentEducationController.text =
-            CurrencyUtils.formatAllocation(
-              income,
-              AppConstants.skillsDevelopmentEducation,
-            );
-        _entertainmentSelfRewardController.text =
-            CurrencyUtils.formatAllocation(
-              income,
-              AppConstants.entertainmentSelfReward,
-            );
-      },
-      child: const Text("Alokasi Pendapatan"),
-    );
-  }
-
-  AspectRatio _cardpersonaldata(User? user) {
-    return AspectRatio(
-      aspectRatio: 336 / 120,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppConstants.backgroundCard),
-            fit: BoxFit.cover,
-          ),
-          borderRadius: BorderRadius.circular(14),
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.primaryDark,
-              AppTheme.accentPurple.withAlpha(100),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 150,
-              top: 10,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.indigo[100],
-                  image: user?.photoURL != null && user!.photoURL!.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(user.photoURL!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: user?.photoURL == null || user!.photoURL!.isEmpty
-                    ? Icon(Icons.person, size: 50, color: Colors.indigo[700])
-                    : null,
-              ),
-            ),
-            Positioned(
-              left: 150,
-              top: 100,
-              child: Text(
-                StringUtils.getDisplayName(user?.displayName),
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 85,
-              top: 120,
-              child: Text(
-                'Email: ${StringUtils.formatEmail(user?.email)}',
-                style: const TextStyle(fontSize: 14, color: Colors.white),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -57,4 +57,5 @@ class AppConstants {
       'Masuk gagal atau dibatalkan. Silakan coba lagi.';
   static const String errorSHA1 =
       'The application configuration is incomplete. Please add the SHA-1 fingerprint in the Firebase Console.';
+
 }

@@ -23,6 +23,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
   DateTime _selectedMonth = DateTime.now();
   List<Transaction> _filteredTransactions = [];
   bool _hasSearched = false;
+  String? _selectedCategory;
 
   String get formattedMonth {
     return DateFormat('MMMM yyyy').format(_selectedMonth);
@@ -35,8 +36,7 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => MonthPickerBottomSheet(
-        initialDate: _selectedMonth) 
+      builder: (_) => MonthPickerBottomSheet(initialDate: _selectedMonth),
     );
 
     if (result != null) {
@@ -58,15 +58,61 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
     });
   }
 
+  List<String> _getCategories() {
+    final user = AuthService.currentUser;
+    if (user == null) {
+      return [];
+    }
+
+    final userEmail = user.email ?? '';
+    final selectedMonth = _selectedMonth.month; // ✅ Gunakan _selectedMonth
+    final selectedYear = _selectedMonth.year; // ✅ Gunakan _selectedMonth
+    final categories = <String>{};
+    categories.add('-- All --');
+
+    debugPrint("Bulan : $selectedMonth");
+    debugPrint("Tahun : $selectedYear");
+    for (var key in boxAllocationPosts.keys) {
+      final keyStr = key.toString();
+
+      // Key format: key_{category}_{email}_{YYYYMM}
+      if (keyStr.contains(userEmail)) {
+        // Extract YYYYMM from end of key
+        final parts = keyStr.split('_');
+        if (parts.length >= 2) {
+          final yyyymm = parts.last; // e.g., "202601"
+
+          if (yyyymm.length == 6) {
+            final keyYear = int.tryParse(yyyymm.substring(0, 4));
+            final keyMonth = int.tryParse(yyyymm.substring(4, 6));
+
+            if (keyYear == selectedYear && keyMonth == selectedMonth) {
+              final allocation = boxAllocationPosts.get(key);
+              if (allocation != null) {
+                categories.add(allocation.category);
+              }
+            }
+          }
+        }
+      }
+    }
+    debugPrint("Daftar kategori : $categories");
+    return categories.toList();
+  }
+
   void _searchTransactions() {
     final user = AuthService.currentUser;
     String userEmail = user?.email ?? 'unknown@email.com';
 
-    // Filter transactions berdasarkan email, bulan, dan tahun
     final transactions = boxTransactions.values.where((transaction) {
-      return transaction.email == userEmail &&
-             transaction.date.year == _selectedMonth.year &&
-             transaction.date.month == _selectedMonth.month;
+      final matchEmail = transaction.email == userEmail;
+      final matchYear = transaction.date.year == _selectedMonth.year;
+      final matchMonth = transaction.date.month == _selectedMonth.month;
+      final matchCategory =
+          _selectedCategory == null ||
+          _selectedCategory == '-- All --' ||
+          transaction.category == _selectedCategory;
+      return matchEmail && matchYear && matchMonth && matchCategory;
     }).toList();
 
     // Sort berdasarkan tanggal (terbaru dulu)
@@ -172,10 +218,9 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
               children: [
                 const SizedBox(height: 17),
                 Container(
-                  height: 120,
+                  height: 220,
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -210,8 +255,11 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                         child: Row(
                           children: [
                             const Text(
-                              "Transaksi",
-                              style: TextStyle(fontSize: 14),
+                              "Tanggal",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const Spacer(),
                             IconButton(
@@ -220,16 +268,20 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 2),
                             GestureDetector(
                               onTap: _openMonthPicker,
                               child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -266,28 +318,86 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
                           ],
                         ),
                       ),
-                      
+
                       Positioned(
                         left: 10,
                         right: 10,
+                        top: 65,
+                        child: Text(
+                          "Kategori :",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 80,
+                        right: 10,
                         top: 60,
+                        child: Builder(
+                          builder: (context) {
+                            final categories = _getCategories();
+                            final hasCategories = categories.isNotEmpty;
+                            final isEnabled = hasCategories;
+
+                            return SizedBox(
+                              height: 50, // 👈 Atur tinggi di sini
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _selectedCategory,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  border: OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                                items: isEnabled
+                                    ? categories.map((String category) {
+                                        return DropdownMenuItem<String>(
+                                          value: category,
+                                          child: Text(
+                                            category,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        );
+                                      }).toList()
+                                    : null,
+                                onChanged: isEnabled
+                                    ? (String? newValue) {
+                                        setState(() {
+                                          _selectedCategory = newValue;
+                                        });
+                                      }
+                                    : null,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      Positioned(
+                        left: 10,
+                        right: 10,
+                        top: 120,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          onPressed: _searchTransactions, 
+                          onPressed: _searchTransactions,
                           child: const Text("Cari Transaksi"),
                         ),
                       ),
-                      
                     ],
                   ),
                 ),
-              
+
                 const SizedBox(height: 20),
-                
+
                 // Tampilkan list transaksi atau empty state
                 if (_hasSearched)
                   _filteredTransactions.isEmpty
@@ -413,22 +523,16 @@ class _HistoryTrasactionScreenState extends State<HistoryTrasactionScreen> {
       ),
     );
   }
-
-  
 }
 
 class _BuildEmptyState extends StatelessWidget {
   const _BuildEmptyState();
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(
-          Icons.receipt_long,
-          size: 80,
-          color: Colors.grey.shade400,
-        ),
+        Icon(Icons.receipt_long, size: 80, color: Colors.grey.shade400),
         const SizedBox(height: 16),
         const Text(
           'Tidak ditemukan transaksi.',

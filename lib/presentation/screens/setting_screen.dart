@@ -1,4 +1,5 @@
 import 'package:my_wallet/data/local/hive_boxes.dart';
+import 'package:my_wallet/presentation/screens/sisa_dana_screen.dart';
 import 'package:my_wallet/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:my_wallet/core/constants/app_constants.dart';
 import 'package:my_wallet/core/theme/app_theme.dart';
@@ -123,6 +124,70 @@ class _SettingScreenState extends State<SettingScreen> {
                 _card(user),
 
                 const SizedBox(height: 60),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SisaDanaScreen(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white,
+                          AppTheme.javanesesCream.withValues(alpha: .5),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.javaneseGold.withValues(alpha: .8),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.javaneseBrown.withValues(alpha: .1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.stacked_line_chart,
+                          color: AppTheme.javaneseMaroon,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Sisa Dana",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.javaneseBrown,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: AppTheme.javaneseBrown.withValues(alpha: .6),
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 _hapusData(),
 
                 const SizedBox(height: 20),
